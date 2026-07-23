@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Legolas</string>
+    <string name="arwen_client">ARWEN CLIENT</string>
+    <string name="ready_to_pair">Ready to pair</string>
+    <string name="pairing_title">Connect to Arwen</string>
+    <string name="pairing_description">Scan the QR code shown in the Arwen terminal to securely connect this device.</string>
+    <string name="scan_qr">Scan QR code</string>
+    <string name="pairing_security_note">Your API key is encrypted and stays on this device.</string>
+    <string name="connection_active">Connection active</string>
+    <string name="connected_title">Connected</string>
+    <string name="connected_description">This device is securely paired with Arwen.</string>
+    <string name="server_address">Server</string>
+    <string name="connected_security_note">Legolas is ready to send enabled data to Arwen.</string>
+    <string name="loading_pairing">Checking secure connection…</string>
+    <string name="forget_arwen">Forget Arwen</string>
+    <string name="invalid_qr">This is not a valid Arwen pairing QR code.</string>
+    <string name="scanner_failed">Could not open the QR scanner.</string>
+    <string name="pairing_save_failed">Could not securely save the Arwen connection.</string>
+    <string name="pairing_forget_failed">Could not remove the Arwen connection.</string>
+</resources>
