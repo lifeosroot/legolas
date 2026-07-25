@@ -31,3 +31,9 @@ The Google Code Scanner handles camera access without adding a camera permission
 ```bash
 ./gradlew test lintDebug assembleDebug
 ```
+
+Run the Android Keystore and DataStore integration tests with a device or emulator connected:
+
+```bash
+./gradlew connectedDebugAndroidTest
+```

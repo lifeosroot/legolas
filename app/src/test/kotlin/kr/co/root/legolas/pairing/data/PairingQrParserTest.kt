@@ -50,6 +50,24 @@ class PairingQrParserTest {
     }
 
     @Test
+    fun `rejects missing server URL`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PairingQrParser.parse(
+                "legolas://pair?apiKey=arwen_test",
+            )
+        }
+    }
+
+    @Test
+    fun `rejects server URL without host`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PairingQrParser.parse(
+                "legolas://pair?server=http%3A%2F%2F%2Fpath&apiKey=arwen_test",
+            )
+        }
+    }
+
+    @Test
     fun `rejects invalid API key prefix`() {
         assertThrows(IllegalArgumentException::class.java) {
             PairingQrParser.parse(
