@@ -28,7 +28,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -42,13 +41,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kr.co.root.legolas.R
 import kr.co.root.legolas.core.designsystem.component.RootPrimaryButton
-import kr.co.root.legolas.core.designsystem.component.RootSecondaryButton
 import kr.co.root.legolas.core.designsystem.theme.RootColors
 import kr.co.root.legolas.core.designsystem.theme.RootTheme
 
@@ -56,7 +53,6 @@ import kr.co.root.legolas.core.designsystem.theme.RootTheme
 fun PairingScreen(
     state: PairingUiState,
     onScan: () -> Unit,
-    onForget: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -70,11 +66,8 @@ fun PairingScreen(
                 .padding(horizontal = 24.dp, vertical = 32.dp),
             contentAlignment = Alignment.Center,
         ) {
-            when {
-                state.isLoading -> LoadingContent()
-                state.serverUrl == null -> UnpairedContent(state.errorMessage, onScan)
-                else -> PairedContent(state.serverUrl, state.errorMessage, onForget)
-            }
+            if (state.isLoading) LoadingContent()
+            else UnpairedContent(state.errorMessage, onScan)
         }
     }
 }
@@ -119,57 +112,6 @@ private fun UnpairedContent(errorMessage: String?, onScan: () -> Unit) {
         Spacer(Modifier.height(24.dp))
         Text(
             text = stringResource(R.string.pairing_security_note),
-            style = MaterialTheme.typography.bodySmall,
-            color = RootColors.TextTertiary,
-            textAlign = TextAlign.Center,
-        )
-    }
-}
-
-@Composable
-private fun PairedContent(
-    serverUrl: String,
-    errorMessage: String?,
-    onForget: () -> Unit,
-) {
-    PairingColumn {
-        AppMark()
-        Spacer(Modifier.height(48.dp))
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            StatusLabel(
-                text = stringResource(R.string.connection_active),
-                color = RootColors.Success,
-            )
-            Text(
-                text = stringResource(R.string.connected_title),
-                modifier = Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.headlineMedium,
-                color = RootColors.TextPrimary,
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                text = stringResource(R.string.connected_description),
-                modifier = Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.bodyLarge,
-                color = RootColors.TextSecondary,
-                textAlign = TextAlign.Center,
-            )
-            ServerAddress(serverUrl)
-            if (errorMessage != null) ErrorMessage(errorMessage)
-            Spacer(Modifier.height(16.dp))
-            RootSecondaryButton(
-                text = stringResource(R.string.forget_arwen),
-                onClick = onForget,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-        Spacer(Modifier.height(24.dp))
-        Text(
-            text = stringResource(R.string.connected_security_note),
             style = MaterialTheme.typography.bodySmall,
             color = RootColors.TextTertiary,
             textAlign = TextAlign.Center,
@@ -312,33 +254,6 @@ private fun StatusDot(
 }
 
 @Composable
-private fun ServerAddress(serverUrl: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        HorizontalDivider(color = RootColors.StrokeSubtle)
-        Text(
-            text = stringResource(R.string.server_address).uppercase(),
-            style = MaterialTheme.typography.labelSmall,
-            color = RootColors.TextTertiary,
-        )
-        Text(
-            text = serverUrl,
-            style = MaterialTheme.typography.bodyMedium,
-            color = RootColors.TextPrimary,
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-        HorizontalDivider(color = RootColors.StrokeSubtle)
-    }
-}
-
-@Composable
 private fun ErrorMessage(message: String) {
     Text(
         text = message,
@@ -371,22 +286,6 @@ private fun UnpairedPreview() {
         PairingScreen(
             state = PairingUiState(isLoading = false),
             onScan = {},
-            onForget = {},
-        )
-    }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFF0F0F14, widthDp = 720, heightDp = 720)
-@Composable
-private fun PairedPreview() {
-    RootTheme {
-        PairingScreen(
-            state = PairingUiState(
-                isLoading = false,
-                serverUrl = "https://arwen.example.com",
-            ),
-            onScan = {},
-            onForget = {},
         )
     }
 }

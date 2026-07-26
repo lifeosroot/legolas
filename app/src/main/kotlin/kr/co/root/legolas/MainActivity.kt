@@ -13,7 +13,6 @@ import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 import dagger.hilt.android.AndroidEntryPoint
 import kr.co.root.legolas.core.designsystem.theme.RootTheme
-import kr.co.root.legolas.pairing.ui.PairingScreen
 import kr.co.root.legolas.pairing.ui.PairingViewModel
 
 @AndroidEntryPoint
@@ -37,7 +36,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             RootTheme {
                 val state by viewModel.uiState.collectAsStateWithLifecycle()
-                PairingScreen(
+                LegolasApp(
                     state = state,
                     onScan = ::scan,
                     onForget = {
