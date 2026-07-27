@@ -8,10 +8,10 @@ class PairingQrParserTest {
     @Test
     fun `parses Arwen pairing URI`() {
         val pairing = PairingQrParser.parse(
-            "legolas://pair?server=http%3A%2F%2F192.168.0.10%3A8080&apiKey=arwen_test-key",
+            "legolas://pair?server=https%3A%2F%2F192.168.0.10%3A8443&apiKey=arwen_test-key",
         )
 
-        assertEquals("http://192.168.0.10:8080", pairing.serverUrl)
+        assertEquals("https://192.168.0.10:8443", pairing.serverUrl)
         assertEquals("arwen_test-key", pairing.apiKey)
     }
 
@@ -37,6 +37,39 @@ class PairingQrParserTest {
             PairingQrParser.parse(
                 "legolas://pair?server=ftp%3A%2F%2Fexample.com&apiKey=arwen_test",
             )
+        }
+    }
+
+    @Test
+    fun `allows cleartext only for local emulator development`() {
+        val pairing = PairingQrParser.parse(
+            "legolas://pair?server=http%3A%2F%2F10.0.2.2%3A8080&apiKey=arwen_test",
+        )
+
+        assertEquals("http://10.0.2.2:8080", pairing.serverUrl)
+    }
+
+    @Test
+    fun `rejects cleartext LAN server because location and API key require TLS`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PairingQrParser.parse(
+                "legolas://pair?server=http%3A%2F%2F192.168.0.10%3A8080&apiKey=arwen_test",
+            )
+        }
+    }
+
+    @Test
+    fun `rejects server URL credentials query and fragment`() {
+        listOf(
+            "https%3A%2F%2Fuser%3Apass%40arwen.example.com",
+            "https%3A%2F%2Farwen.example.com%3Fx%3D1",
+            "https%3A%2F%2Farwen.example.com%23fragment",
+        ).forEach { server ->
+            assertThrows(IllegalArgumentException::class.java) {
+                PairingQrParser.parse(
+                    "legolas://pair?server=$server&apiKey=arwen_test",
+                )
+            }
         }
     }
 
@@ -72,6 +105,15 @@ class PairingQrParserTest {
         assertThrows(IllegalArgumentException::class.java) {
             PairingQrParser.parse(
                 "legolas://pair?server=https%3A%2F%2Farwen.example.com&apiKey=invalid",
+            )
+        }
+    }
+
+    @Test
+    fun `rejects control characters in API key`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PairingQrParser.parse(
+                "legolas://pair?server=https%3A%2F%2Farwen.example.com&apiKey=arwen_test%0Ainjected",
             )
         }
     }

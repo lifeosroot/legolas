@@ -1,6 +1,7 @@
 package kr.co.root.legolas.location.ui
 
 import android.Manifest
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -54,6 +55,10 @@ import kr.co.root.legolas.location.permission.LocationAccuracy
 import kr.co.root.legolas.location.permission.LocationPermissionStatus
 import kr.co.root.legolas.location.permission.appLocationSettingsIntent
 import kr.co.root.legolas.location.permission.locationPermissionStatus
+import kr.co.root.legolas.location.permission.requiresLocalNetworkPermission
+import kr.co.root.legolas.location.permission.systemLocationSettingsIntent
+import java.text.DateFormat
+import java.util.Date
 
 private enum class LocationTopTab {
     Route,
@@ -187,21 +192,27 @@ private fun LocationModuleSettings(
     val context = androidx.compose.ui.platform.LocalContext.current
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var permissionStatus by remember { mutableStateOf(context.locationPermissionStatus()) }
+    val needsLocalNetworkAccess = remember(serverUrl) {
+        requiresLocalNetworkPermission(serverUrl)
+    }
     var showEnableDisclosure by rememberSaveable { mutableStateOf(false) }
     var showBackgroundAccessGuide by rememberSaveable { mutableStateOf(false) }
     val foregroundPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) {
         permissionStatus = context.locationPermissionStatus()
+        viewModel.syncTracking(permissionStatus.canTrackInBackground)
     }
     val settingsLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) {
         permissionStatus = context.locationPermissionStatus()
+        viewModel.syncTracking(permissionStatus.canTrackInBackground)
     }
 
     LifecycleResumeEffect(context) {
         permissionStatus = context.locationPermissionStatus()
+        viewModel.syncTracking(permissionStatus.canTrackInBackground)
         onPauseOrDispose { }
     }
 
@@ -258,7 +269,15 @@ private fun LocationModuleSettings(
             HorizontalDivider()
             StatusItem(
                 label = stringResource(R.string.location_collection),
-                value = collectionStatus(state.isEnabled, permissionStatus),
+                value = collectionStatus(state.isEnabled, state.isServiceRunning, permissionStatus),
+            )
+            StatusItem(
+                label = stringResource(R.string.location_device_services),
+                value = if (permissionStatus.isSystemLocationEnabled) {
+                    stringResource(R.string.location_on)
+                } else {
+                    stringResource(R.string.location_off)
+                },
             )
             StatusItem(
                 label = stringResource(R.string.location_accuracy),
@@ -269,13 +288,49 @@ private fun LocationModuleSettings(
                 value = permissionStatus.backgroundLabel(),
             )
             StatusItem(
+                label = stringResource(R.string.location_activity_recognition),
+                value = if (permissionStatus.hasActivityRecognitionAccess) {
+                    stringResource(R.string.location_allowed)
+                } else {
+                    stringResource(R.string.location_not_allowed)
+                },
+            )
+            StatusItem(
+                label = stringResource(R.string.location_notifications),
+                value = if (permissionStatus.hasNotificationAccess) {
+                    stringResource(R.string.location_allowed)
+                } else {
+                    stringResource(R.string.location_not_allowed)
+                },
+            )
+            StatusItem(
+                label = stringResource(R.string.location_local_network),
+                value = if (!needsLocalNetworkAccess) {
+                    stringResource(R.string.location_not_required)
+                } else if (permissionStatus.hasLocalNetworkAccess) {
+                    stringResource(R.string.location_allowed)
+                } else {
+                    stringResource(R.string.location_not_allowed)
+                },
+            )
+            StatusItem(
                 label = stringResource(R.string.location_last_collected),
-                value = stringResource(R.string.location_never),
+                value = state.lastCollectedAtMillis?.let {
+                    DateFormat.getDateTimeInstance().format(Date(it))
+                } ?: stringResource(R.string.location_never),
             )
             StatusItem(
                 label = stringResource(R.string.location_pending_uploads),
-                value = "0",
+                value = state.queuedCount.toString(),
             )
+            state.lastError?.let {
+                HorizontalDivider()
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.location_last_error)) },
+                    supportingContent = { Text(it) },
+                    colors = transparentListItemColors(),
+                )
+            }
         }
 
         Card(
@@ -310,14 +365,9 @@ private fun LocationModuleSettings(
 
         if (state.isEnabled) {
             when {
-                !permissionStatus.hasForegroundAccess -> Button(
+                !permissionStatus.hasPreciseAccess -> Button(
                     onClick = {
-                        foregroundPermissionLauncher.launch(
-                            arrayOf(
-                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                Manifest.permission.ACCESS_COARSE_LOCATION,
-                            ),
-                        )
+                        foregroundPermissionLauncher.launch(requiredRuntimePermissions(needsLocalNetworkAccess))
                     },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
@@ -329,6 +379,40 @@ private fun LocationModuleSettings(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(stringResource(R.string.how_to_allow_background_location))
+                }
+
+                !permissionStatus.hasActivityRecognitionAccess -> Button(
+                    onClick = {
+                        foregroundPermissionLauncher.launch(requiredRuntimePermissions(needsLocalNetworkAccess))
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.allow_activity_recognition))
+                }
+
+                !permissionStatus.hasNotificationAccess -> Button(
+                    onClick = {
+                        foregroundPermissionLauncher.launch(requiredRuntimePermissions(needsLocalNetworkAccess))
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.allow_notifications))
+                }
+
+                !permissionStatus.isSystemLocationEnabled -> Button(
+                    onClick = { settingsLauncher.launch(systemLocationSettingsIntent()) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.turn_on_device_location))
+                }
+
+                needsLocalNetworkAccess && !permissionStatus.hasLocalNetworkAccess -> Button(
+                    onClick = {
+                        foregroundPermissionLauncher.launch(requiredRuntimePermissions(needsLocalNetworkAccess))
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.allow_local_network))
                 }
 
                 else -> OutlinedButton(
@@ -350,13 +434,17 @@ private fun LocationModuleSettings(
                 TextButton(
                     onClick = {
                         showEnableDisclosure = false
-                        viewModel.setEnabled(true)
-                        if (!permissionStatus.hasForegroundAccess) {
+                        viewModel.setEnabled(
+                            enabled = true,
+                            canTrackInBackground = permissionStatus.canTrackInBackground,
+                        )
+                        if (!permissionStatus.hasPreciseAccess ||
+                            !permissionStatus.hasActivityRecognitionAccess ||
+                            !permissionStatus.hasNotificationAccess ||
+                            (needsLocalNetworkAccess && !permissionStatus.hasLocalNetworkAccess)
+                        ) {
                             foregroundPermissionLauncher.launch(
-                                arrayOf(
-                                    Manifest.permission.ACCESS_FINE_LOCATION,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                                ),
+                                requiredRuntimePermissions(needsLocalNetworkAccess),
                             )
                         }
                     },
@@ -413,13 +501,35 @@ private fun StatusItem(label: String, value: String) {
 @Composable
 private fun collectionStatus(
     isEnabled: Boolean,
+    isServiceRunning: Boolean,
     permissionStatus: LocationPermissionStatus,
 ): String = when {
     !isEnabled -> stringResource(R.string.location_collection_off)
-    !permissionStatus.hasForegroundAccess -> stringResource(R.string.location_collection_needs_permission)
+    !permissionStatus.hasPreciseAccess -> stringResource(R.string.location_collection_needs_precise)
     !permissionStatus.hasBackgroundAccess -> stringResource(R.string.location_collection_needs_background)
-    else -> stringResource(R.string.location_collection_ready)
+    !permissionStatus.hasActivityRecognitionAccess ->
+        stringResource(R.string.location_collection_needs_activity)
+    !permissionStatus.hasNotificationAccess ->
+        stringResource(R.string.location_collection_needs_notifications)
+    !permissionStatus.isSystemLocationEnabled ->
+        stringResource(R.string.location_collection_needs_device_location)
+    isServiceRunning -> stringResource(R.string.location_collection_active)
+    else -> stringResource(R.string.location_collection_starting)
 }
+
+private fun requiredRuntimePermissions(needsLocalNetworkAccess: Boolean): Array<String> = buildList {
+    add(Manifest.permission.ACCESS_FINE_LOCATION)
+    add(Manifest.permission.ACCESS_COARSE_LOCATION)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        add(Manifest.permission.ACTIVITY_RECOGNITION)
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        add(Manifest.permission.POST_NOTIFICATIONS)
+    }
+    if (needsLocalNetworkAccess && Build.VERSION.SDK_INT >= Android17ApiLevel) {
+        add(Manifest.permission.ACCESS_LOCAL_NETWORK)
+    }
+}.toTypedArray()
 
 @Composable
 private fun LocationPermissionStatus.accuracyLabel(): String = when (accuracy) {
@@ -439,3 +549,5 @@ private fun LocationPermissionStatus.backgroundLabel(): String = when {
 private fun transparentListItemColors() = ListItemDefaults.colors(
     containerColor = androidx.compose.ui.graphics.Color.Transparent,
 )
+
+private const val Android17ApiLevel = 37

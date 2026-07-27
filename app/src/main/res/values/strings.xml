@@ -20,7 +20,7 @@
     <string name="server_address">Server</string>
     <string name="loading_pairing">Checking secure connection…</string>
     <string name="forget_arwen">Forget Arwen</string>
-    <string name="forget_arwen_confirmation">You will need to scan Arwen’s QR code again to reconnect this device.</string>
+    <string name="forget_arwen_confirmation">This stops location collection, deletes location samples still waiting on this device, and removes the pairing key. Data already sent to Arwen stays on that server.</string>
     <string name="invalid_qr">This is not a valid Arwen pairing QR code.</string>
     <string name="scanner_failed">Could not open the QR scanner.</string>
     <string name="pairing_save_failed">Could not securely save the Arwen connection.</string>

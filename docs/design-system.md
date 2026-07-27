@@ -14,11 +14,11 @@ Legolas의 화면은 Root 제품군과 같은 시각 언어를 사용한다. 이
 
 ## 2. 기준 소스
 
-현재 로컬 기준 경로:
+내부 기준 저장소의 상대 경로:
 
 ```text
-/Users/archan/dev/personal/root/app/root_android/core/designsystem
-/Users/archan/dev/personal/root/app/root_fe/root_fe/global/DesignSystem.swift
+root_android/core/designsystem
+root_fe/root_fe/global/DesignSystem.swift
 ```
 
 주요 Android 파일:

@@ -26,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.co.root.legolas.location.R
 import kr.co.root.legolas.location.permission.locationPermissionStatus
+import kr.co.root.legolas.location.permission.requiresLocalNetworkPermission
 
 internal enum class LocationModuleStatus {
     Checking,
@@ -38,15 +39,22 @@ internal fun locationModuleStatus(
     isLoading: Boolean,
     isEnabled: Boolean,
     canTrackInBackground: Boolean,
+    canAccessPairedServer: Boolean = true,
+    isServiceRunning: Boolean = true,
+    hasError: Boolean = false,
 ): LocationModuleStatus = when {
     isLoading -> LocationModuleStatus.Checking
     !isEnabled -> LocationModuleStatus.Off
     !canTrackInBackground -> LocationModuleStatus.ActionRequired
+    !canAccessPairedServer -> LocationModuleStatus.ActionRequired
+    hasError -> LocationModuleStatus.ActionRequired
+    !isServiceRunning -> LocationModuleStatus.Checking
     else -> LocationModuleStatus.Ready
 }
 
 @Composable
 fun LocationModuleSummary(
+    serverUrl: String,
     onManage: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LocationSettingsViewModel = viewModel(),
@@ -58,10 +66,15 @@ fun LocationModuleSummary(
         isLoading = state.isLoading,
         isEnabled = state.isEnabled,
         canTrackInBackground = permissionStatus.canTrackInBackground,
+        canAccessPairedServer = !requiresLocalNetworkPermission(serverUrl) ||
+            permissionStatus.hasLocalNetworkAccess,
+        isServiceRunning = state.isServiceRunning,
+        hasError = state.lastError != null,
     )
 
     LifecycleResumeEffect(context) {
         permissionStatus = context.locationPermissionStatus()
+        viewModel.syncTracking(permissionStatus.canTrackInBackground)
         onPauseOrDispose { }
     }
 

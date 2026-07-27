@@ -39,4 +39,30 @@ class LocationModuleStatusTest {
             ),
         )
     }
+
+    @Test
+    fun `collection or upload error requires attention`() {
+        assertEquals(
+            LocationModuleStatus.ActionRequired,
+            locationModuleStatus(
+                isLoading = false,
+                isEnabled = true,
+                canTrackInBackground = true,
+                hasError = true,
+            ),
+        )
+    }
+
+    @Test
+    fun `enabled local server without Android access requires attention`() {
+        assertEquals(
+            LocationModuleStatus.ActionRequired,
+            locationModuleStatus(
+                isLoading = false,
+                isEnabled = true,
+                canTrackInBackground = true,
+                canAccessPairedServer = false,
+            ),
+        )
+    }
 }

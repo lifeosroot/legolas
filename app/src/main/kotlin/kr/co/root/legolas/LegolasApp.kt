@@ -57,6 +57,7 @@ fun LegolasApp(
             onForget = onForget,
         )
         LegolasDestination.Home -> HomeScreen(
+            serverUrl = requireNotNull(serverUrl),
             onSettings = { requestedDestination = LegolasDestination.Settings },
             onLocation = { requestedDestination = LegolasDestination.Location },
         )

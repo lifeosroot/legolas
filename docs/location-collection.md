@@ -1,0 +1,55 @@
+# Location collection
+
+Location collection is an explicit opt-in module. Pairing alone does not enable it.
+
+## What runs
+
+The foreground service combines Google Play services Activity Recognition with fused location updates. Its state machine and thresholds were ported from the Root Android reference implementation without changing the decision rules. The states are `Unknown`, `Still`, `MovingCandidate`, `Moving`, and `MovingDegraded`; GPS evidence can promote or heal activity-recognition decisions. Departure, arrival, and motion-transition samples have dedicated boundary and deduplication rules.
+
+The 11 pure policy files and the original 56 policy tests were moved together. The Android service adds only lifecycle, permission, local outbox, and Arwen upload integration around those rules.
+
+## Permissions and visible state
+
+Collection requires:
+
+- precise foreground location;
+- **Allow all the time** background location on Android 10 and later;
+- physical activity access on Android 10 and later;
+- notifications on Android 13 and later; and
+- the device-wide location switch to be on.
+
+Approximate location is shown but is not accepted as ready because the collection policy rejects readings with insufficient accuracy. A persistent Android foreground-service notification remains visible while collection is active and includes a **Stop collection** action.
+
+On Android 17 and later, Legolas requests local-network access only when the paired Arwen host is a private IP or local hostname. Denying that permission does not stop collection: samples remain in the local outbox until the server is reachable.
+
+## Data and opt-out behavior
+
+Each queued and uploaded sample contains only:
+
+- client-generated sample ID;
+- collection time;
+- latitude and longitude;
+- horizontal accuracy;
+- collection source;
+- activity type; and
+- the boundary/save reason, when present.
+
+Turning the module off stops the service, cancels scheduled uploads, and prevents both new inserts and uploads. Pending samples remain locally so collection can resume without silent data loss. **Forget Arwen** turns the module off, deletes pending samples, and removes the local pairing secret. It does not delete data already received by Arwen.
+
+Uploads are idempotent by owner and client sample ID. Network failures, HTTP 408/429, and server errors are retried; permanent client or authentication errors are surfaced without an endless background retry.
+
+## Transport
+
+Use HTTPS for every real-device Arwen deployment. Plain HTTP is restricted to `localhost`, `127.0.0.1`, `::1`, and `10.0.2.2` for local development. A self-hosted LAN deployment therefore needs a TLS reverse proxy and a certificate trusted by the phone.
+
+## Verification
+
+Run the deterministic checks with:
+
+```bash
+./gradlew test lintDebug assembleDebug
+```
+
+Before a release, also test on the supported Android versions: API 23, 29, 30/31, 33, 34, and 37. Cover precise versus approximate location, permission revocation, device location off, immediate enable/disable, a delayed activity update, process death and sticky restart, reboot recovery, offline queue recovery, local-network denial, and forgetting an empty and non-empty outbox.
+
+OEM battery restrictions can still delay callbacks. Legolas deliberately does not request a blanket battery-optimization exemption; users can allow unrestricted background use in Android system settings when their device vendor requires it.

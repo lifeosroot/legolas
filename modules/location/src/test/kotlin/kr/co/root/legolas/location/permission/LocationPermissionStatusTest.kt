@@ -35,16 +35,43 @@ class LocationPermissionStatusTest {
     }
 
     @Test
+    fun `approximate location cannot satisfy the fifty meter collection policy`() {
+        val status = locationPermissionStatus(
+            sdkInt = 35,
+            hasFineAccess = false,
+            hasCoarseAccess = true,
+            hasBackgroundAccess = true,
+        )
+
+        assertFalse(status.hasPreciseAccess)
+        assertFalse(status.canTrackInBackground)
+    }
+
+    @Test
     fun `fine and background permissions allow precise background tracking`() {
         val status = locationPermissionStatus(
             sdkInt = 35,
             hasFineAccess = true,
             hasCoarseAccess = true,
             hasBackgroundAccess = true,
+            hasActivityRecognitionAccess = true,
         )
 
         assertEquals(LocationAccuracy.Precise, status.accuracy)
         assertTrue(status.canTrackInBackground)
+    }
+
+    @Test
+    fun `activity recognition is required for the full tracking policy on Android 10+`() {
+        val status = locationPermissionStatus(
+            sdkInt = 35,
+            hasFineAccess = true,
+            hasCoarseAccess = true,
+            hasBackgroundAccess = true,
+            hasActivityRecognitionAccess = false,
+        )
+
+        assertFalse(status.canTrackInBackground)
     }
 
     @Test
@@ -57,5 +84,41 @@ class LocationPermissionStatusTest {
         )
 
         assertTrue(status.canTrackInBackground)
+    }
+
+    @Test
+    fun `local network permission is reported without stopping offline collection`() {
+        val denied = locationPermissionStatus(
+            sdkInt = 37,
+            hasFineAccess = true,
+            hasCoarseAccess = true,
+            hasBackgroundAccess = true,
+            hasLocalNetworkAccess = false,
+        )
+
+        assertFalse(denied.hasLocalNetworkAccess)
+        assertTrue(denied.canTrackInBackground)
+        assertTrue(
+            locationPermissionStatus(
+                sdkInt = 36,
+                hasFineAccess = true,
+                hasCoarseAccess = true,
+                hasBackgroundAccess = true,
+                hasLocalNetworkAccess = false,
+            ).canTrackInBackground,
+        )
+    }
+
+    @Test
+    fun `disabled device location prevents collection`() {
+        val status = locationPermissionStatus(
+            sdkInt = 37,
+            hasFineAccess = true,
+            hasCoarseAccess = true,
+            hasBackgroundAccess = true,
+            isSystemLocationEnabled = false,
+        )
+
+        assertFalse(status.canTrackInBackground)
     }
 }

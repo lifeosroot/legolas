@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kr.co.root.legolas.pairing.data.PairingQrParser
 import kr.co.root.legolas.pairing.data.PairingRepository
+import kr.co.root.legolas.location.tracking.LocationTrackingCommander
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,6 +23,7 @@ data class PairingUiState(
 @HiltViewModel
 class PairingViewModel @Inject constructor(
     private val repository: PairingRepository,
+    private val locationTrackingCommander: LocationTrackingCommander,
 ) : ViewModel() {
     private val errorMessage = MutableStateFlow<String?>(null)
 
@@ -63,6 +65,7 @@ class PairingViewModel @Inject constructor(
 
     fun forget(failedMessage: String) {
         launchRepositoryAction(failedMessage) {
+            locationTrackingCommander.disableAndClear()
             repository.clear()
         }
     }

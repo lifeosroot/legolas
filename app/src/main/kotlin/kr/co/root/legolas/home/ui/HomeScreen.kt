@@ -33,6 +33,7 @@ import kr.co.root.legolas.location.ui.LocationModuleSummary
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    serverUrl: String,
     onSettings: () -> Unit,
     onLocation: () -> Unit,
     modifier: Modifier = Modifier,
@@ -88,7 +89,10 @@ fun HomeScreen(
                     color = RootColors.TextSecondary,
                 )
                 Spacer(Modifier.height(24.dp))
-                LocationModuleSummary(onManage = onLocation)
+                LocationModuleSummary(
+                    serverUrl = serverUrl,
+                    onManage = onLocation,
+                )
             }
         }
     }
@@ -99,6 +103,7 @@ fun HomeScreen(
 private fun HomePreview() {
     RootTheme {
         HomeScreen(
+            serverUrl = "https://arwen.example.com",
             onSettings = {},
             onLocation = {},
         )

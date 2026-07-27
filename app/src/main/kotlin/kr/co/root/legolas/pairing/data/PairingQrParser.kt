@@ -14,9 +14,15 @@ object PairingQrParser {
         val apiKey = requireNotNull(uri.queryParameter("apiKey"))
         val server = URI.create(serverUrl)
 
-        require(server.scheme == "http" || server.scheme == "https")
-        require(server.host != null)
-        require(apiKey.startsWith("arwen_") && apiKey.length > "arwen_".length)
+        val scheme = server.scheme?.lowercase()
+        val host = server.host?.lowercase()
+
+        require(host != null)
+        require(scheme == "https" || scheme == "http" && host in DevelopmentHttpHosts)
+        require(server.userInfo == null && server.rawQuery == null && server.rawFragment == null)
+        require(server.port == -1 || server.port in 1..65_535)
+        require(apiKey.startsWith("arwen_") && apiKey.length in 7..128)
+        require(apiKey.all { it.isLetterOrDigit() || it == '_' || it == '-' })
 
         return PairingConfig(
             serverUrl = serverUrl.trimEnd('/'),
@@ -31,4 +37,6 @@ object PairingQrParser {
         ?.firstOrNull { it.size == 2 && it[0] == name }
         ?.get(1)
         ?.let { URLDecoder.decode(it, StandardCharsets.UTF_8.name()) }
+
+    private val DevelopmentHttpHosts = setOf("localhost", "127.0.0.1", "::1", "10.0.2.2")
 }
