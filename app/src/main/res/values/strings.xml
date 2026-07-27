@@ -10,8 +10,6 @@
     <string name="home">Home</string>
     <string name="home_title">Legolas is ready</string>
     <string name="home_description">Enabled features will appear here as they become available.</string>
-    <string name="home_empty_title">No features enabled</string>
-    <string name="home_empty_description">Enable a feature to see its data here.</string>
     <string name="settings">Settings</string>
     <string name="back">Back</string>
     <string name="cancel">Cancel</string>

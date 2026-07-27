@@ -26,14 +26,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kr.co.root.legolas.R
-import kr.co.root.legolas.core.designsystem.component.RootSurface
 import kr.co.root.legolas.core.designsystem.theme.RootColors
 import kr.co.root.legolas.core.designsystem.theme.RootTheme
+import kr.co.root.legolas.location.ui.LocationModuleSummary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onSettings: () -> Unit,
+    onLocation: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -87,18 +88,7 @@ fun HomeScreen(
                     color = RootColors.TextSecondary,
                 )
                 Spacer(Modifier.height(24.dp))
-                RootSurface {
-                    Text(
-                        text = stringResource(R.string.home_empty_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = RootColors.TextPrimary,
-                    )
-                    Text(
-                        text = stringResource(R.string.home_empty_description),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = RootColors.TextSecondary,
-                    )
-                }
+                LocationModuleSummary(onManage = onLocation)
             }
         }
     }
@@ -108,6 +98,9 @@ fun HomeScreen(
 @Composable
 private fun HomePreview() {
     RootTheme {
-        HomeScreen(onSettings = {})
+        HomeScreen(
+            onSettings = {},
+            onLocation = {},
+        )
     }
 }

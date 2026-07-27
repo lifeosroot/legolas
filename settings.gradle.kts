@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "legolas"
 include(":app")
+include(":modules:location")

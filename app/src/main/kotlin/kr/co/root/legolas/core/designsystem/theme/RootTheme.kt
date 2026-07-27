@@ -36,6 +36,10 @@ private val RootColorScheme = darkColorScheme(
     surfaceVariant = RootColors.Surface,
     onSurfaceVariant = RootColors.TextSecondary,
     outline = RootColors.Stroke,
+    tertiary = RootColors.Success,
+    onTertiary = Color.Black,
+    tertiaryContainer = Color(0xFF123D26),
+    onTertiaryContainer = Color(0xFF86EFAC),
     error = RootColors.Danger,
     onError = Color.White,
 )

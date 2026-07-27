@@ -8,11 +8,19 @@ class LegolasAppTest {
     fun `shows pairing while loading or unpaired`() {
         assertEquals(
             LegolasDestination.Pairing,
-            destinationFor(isLoading = true, serverUrl = null, showSettings = false),
+            destinationFor(
+                isLoading = true,
+                serverUrl = null,
+                requestedDestination = LegolasDestination.Home,
+            ),
         )
         assertEquals(
             LegolasDestination.Pairing,
-            destinationFor(isLoading = false, serverUrl = null, showSettings = true),
+            destinationFor(
+                isLoading = false,
+                serverUrl = null,
+                requestedDestination = LegolasDestination.Settings,
+            ),
         )
     }
 
@@ -23,7 +31,7 @@ class LegolasAppTest {
             destinationFor(
                 isLoading = false,
                 serverUrl = "https://arwen.example.com",
-                showSettings = false,
+                requestedDestination = LegolasDestination.Home,
             ),
         )
     }
@@ -35,7 +43,19 @@ class LegolasAppTest {
             destinationFor(
                 isLoading = false,
                 serverUrl = "https://arwen.example.com",
-                showSettings = true,
+                requestedDestination = LegolasDestination.Settings,
+            ),
+        )
+    }
+
+    @Test
+    fun `shows location when requested while paired`() {
+        assertEquals(
+            LegolasDestination.Location,
+            destinationFor(
+                isLoading = false,
+                serverUrl = "https://arwen.example.com",
+                requestedDestination = LegolasDestination.Location,
             ),
         )
     }
