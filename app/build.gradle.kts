@@ -5,6 +5,11 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+val locationEnabled = providers.gradleProperty("locationEnabled")
+    .orElse("true")
+    .get()
+    .toBooleanStrict()
+
 android {
     namespace = "kr.co.root.legolas"
     compileSdk = 37
@@ -31,6 +36,12 @@ android {
         compose = true
     }
 
+    sourceSets {
+        getByName("main").kotlin.directories.add(
+            if (locationEnabled) "src/locationEnabled/kotlin" else "src/locationDisabled/kotlin",
+        )
+    }
+
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
@@ -43,7 +54,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":modules:location"))
+    if (locationEnabled) implementation(project(":modules:location"))
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 
     val composeBom = platform("androidx.compose:compose-bom:2026.06.00")

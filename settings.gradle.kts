@@ -15,5 +15,11 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "legolas"
+
+val locationEnabled = providers.gradleProperty("locationEnabled")
+    .orElse("true")
+    .get()
+    .toBooleanStrict()
+
 include(":app")
-include(":modules:location")
+if (locationEnabled) include(":modules:location")

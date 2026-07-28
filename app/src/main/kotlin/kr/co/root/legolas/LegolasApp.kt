@@ -7,8 +7,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import kr.co.root.legolas.feature.LocationFeature
 import kr.co.root.legolas.home.ui.HomeScreen
-import kr.co.root.legolas.location.ui.LocationModuleScreen
 import kr.co.root.legolas.pairing.ui.PairingScreen
 import kr.co.root.legolas.pairing.ui.PairingUiState
 import kr.co.root.legolas.settings.ui.SettingsScreen
@@ -24,15 +24,19 @@ internal fun destinationFor(
     isLoading: Boolean,
     serverUrl: String?,
     requestedDestination: LegolasDestination,
+    isLocationAvailable: Boolean = true,
 ): LegolasDestination = when {
     isLoading || serverUrl == null -> LegolasDestination.Pairing
     requestedDestination == LegolasDestination.Pairing -> LegolasDestination.Home
+    requestedDestination == LegolasDestination.Location && !isLocationAvailable ->
+        LegolasDestination.Home
     else -> requestedDestination
 }
 
 @Composable
 fun LegolasApp(
     state: PairingUiState,
+    locationFeature: LocationFeature,
     onScan: () -> Unit,
     onForget: () -> Unit,
 ) {
@@ -44,9 +48,16 @@ fun LegolasApp(
         requestedDestination = LegolasDestination.Home
     }
 
-    when (destinationFor(state.isLoading, serverUrl, requestedDestination)) {
+    when (
+        destinationFor(
+            state.isLoading,
+            serverUrl,
+            requestedDestination,
+            locationFeature.isAvailable,
+        )
+    ) {
         LegolasDestination.Pairing -> PairingScreen(state, onScan)
-        LegolasDestination.Location -> LocationModuleScreen(
+        LegolasDestination.Location -> locationFeature.Screen(
             serverUrl = requireNotNull(serverUrl),
             onBack = { requestedDestination = LegolasDestination.Home },
         )
@@ -57,9 +68,12 @@ fun LegolasApp(
             onForget = onForget,
         )
         LegolasDestination.Home -> HomeScreen(
-            serverUrl = requireNotNull(serverUrl),
             onSettings = { requestedDestination = LegolasDestination.Settings },
-            onLocation = { requestedDestination = LegolasDestination.Location },
-        )
+        ) {
+            locationFeature.Summary(
+                serverUrl = requireNotNull(serverUrl),
+                onOpen = { requestedDestination = LegolasDestination.Location },
+            )
+        }
     }
 }

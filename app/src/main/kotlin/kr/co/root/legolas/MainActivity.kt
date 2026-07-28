@@ -13,10 +13,14 @@ import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 import dagger.hilt.android.AndroidEntryPoint
 import kr.co.root.legolas.core.designsystem.theme.RootTheme
+import kr.co.root.legolas.feature.LocationFeature
 import kr.co.root.legolas.pairing.ui.PairingViewModel
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject lateinit var locationFeature: LocationFeature
+
     private val viewModel: PairingViewModel by viewModels()
 
     private val scanner by lazy {
@@ -38,6 +42,7 @@ class MainActivity : ComponentActivity() {
                 val state by viewModel.uiState.collectAsStateWithLifecycle()
                 LegolasApp(
                     state = state,
+                    locationFeature = locationFeature,
                     onScan = ::scan,
                     onForget = {
                         viewModel.forget(getString(R.string.pairing_forget_failed))

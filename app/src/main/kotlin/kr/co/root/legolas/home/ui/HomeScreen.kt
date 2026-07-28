@@ -28,15 +28,13 @@ import androidx.compose.ui.unit.dp
 import kr.co.root.legolas.R
 import kr.co.root.legolas.core.designsystem.theme.RootColors
 import kr.co.root.legolas.core.designsystem.theme.RootTheme
-import kr.co.root.legolas.location.ui.LocationModuleSummary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    serverUrl: String,
     onSettings: () -> Unit,
-    onLocation: () -> Unit,
     modifier: Modifier = Modifier,
+    featureContent: @Composable () -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -89,10 +87,7 @@ fun HomeScreen(
                     color = RootColors.TextSecondary,
                 )
                 Spacer(Modifier.height(24.dp))
-                LocationModuleSummary(
-                    serverUrl = serverUrl,
-                    onManage = onLocation,
-                )
+                featureContent()
             }
         }
     }
@@ -103,9 +98,7 @@ fun HomeScreen(
 private fun HomePreview() {
     RootTheme {
         HomeScreen(
-            serverUrl = "https://arwen.example.com",
             onSettings = {},
-            onLocation = {},
         )
     }
 }

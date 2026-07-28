@@ -59,4 +59,17 @@ class LegolasAppTest {
             ),
         )
     }
+
+    @Test
+    fun `returns home when location is excluded from the build`() {
+        assertEquals(
+            LegolasDestination.Home,
+            destinationFor(
+                isLoading = false,
+                serverUrl = "https://arwen.example.com",
+                requestedDestination = LegolasDestination.Location,
+                isLocationAvailable = false,
+            ),
+        )
+    }
 }

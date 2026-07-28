@@ -15,6 +15,14 @@ App shell (Compose + Hilt)
 
 The location module is compiled into this build but is **off by default**. It does not collect or upload anything until the user enables it and grants the required Android permissions. See [Location collection](docs/location-collection.md) for the state machine, data fields, opt-out behavior, and device test checklist.
 
+To build Legolas without the location module, its permissions, services, and dependencies:
+
+```bash
+./gradlew assembleDebug -PlocationEnabled=false
+```
+
+Location support is included when the property is omitted.
+
 ## Design
 
 See [Legolas Design System](docs/design-system.md). It records the shared Root colors, typography, shapes, components, source-of-truth projects, and implementation rules.
