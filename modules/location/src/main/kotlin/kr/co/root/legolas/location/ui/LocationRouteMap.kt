@@ -126,10 +126,9 @@ private fun ExternalRouteMap(
     samples: List<LocationSample>,
     onLoadFailed: () -> Unit,
 ) {
-    val routeGeoJson = remember(samples) { samples.routeLineGeoJson() }
-    val startGeoJson = remember(samples) { samples.first().routePointGeoJson() }
-    val endGeoJson = remember(samples) { samples.last().routePointGeoJson() }
-    val bounds = remember(samples) { samples.routeBounds().toMapLibreBounds() }
+    val bounds = remember(samples) {
+        samples.firstOrNull()?.let { samples.routeBounds().toMapLibreBounds() }
+    }
     val cameraState = rememberCameraState()
     var isMapLoaded by remember { mutableStateOf(false) }
     val routeColor = MaterialTheme.colorScheme.primary
@@ -138,7 +137,7 @@ private fun ExternalRouteMap(
     val markerStrokeColor = MaterialTheme.colorScheme.surface
 
     LaunchedEffect(isMapLoaded, bounds) {
-        if (isMapLoaded) {
+        if (isMapLoaded && bounds != null) {
             cameraState.animateTo(
                 boundingBox = bounds,
                 padding = PaddingValues(36.dp),
@@ -153,46 +152,57 @@ private fun ExternalRouteMap(
         onMapLoadFailed = { onLoadFailed() },
         onMapLoadFinished = { isMapLoaded = true },
     ) {
-        val routeSource = rememberGeoJsonSource(GeoJsonData.JsonString(routeGeoJson))
-        val startSource = rememberGeoJsonSource(GeoJsonData.JsonString(startGeoJson))
+        if (samples.isNotEmpty()) {
+            val routeGeoJson = remember(samples) { samples.routeLineGeoJson() }
+            val startGeoJson = remember(samples) { samples.first().routePointGeoJson() }
+            val routeSource = rememberGeoJsonSource(GeoJsonData.JsonString(routeGeoJson))
+            val startSource = rememberGeoJsonSource(GeoJsonData.JsonString(startGeoJson))
 
-        LineLayer(
-            id = "legolas-route-line",
-            source = routeSource,
-            color = const(routeColor),
-            width = const(5.dp),
-        )
-        CircleLayer(
-            id = "legolas-route-start",
-            source = startSource,
-            color = const(startColor),
-            radius = const(7.dp),
-            strokeColor = const(markerStrokeColor),
-            strokeWidth = const(2.dp),
-        )
-        if (samples.size > 1) {
-            val endSource = rememberGeoJsonSource(GeoJsonData.JsonString(endGeoJson))
+            LineLayer(
+                id = "legolas-route-line",
+                source = routeSource,
+                color = const(routeColor),
+                width = const(5.dp),
+            )
             CircleLayer(
-                id = "legolas-route-end",
-                source = endSource,
-                color = const(endColor),
+                id = "legolas-route-start",
+                source = startSource,
+                color = const(startColor),
                 radius = const(7.dp),
                 strokeColor = const(markerStrokeColor),
                 strokeWidth = const(2.dp),
             )
+            if (samples.size > 1) {
+                val endGeoJson = remember(samples) { samples.last().routePointGeoJson() }
+                val endSource = rememberGeoJsonSource(GeoJsonData.JsonString(endGeoJson))
+                CircleLayer(
+                    id = "legolas-route-end",
+                    source = endSource,
+                    color = const(endColor),
+                    radius = const(7.dp),
+                    strokeColor = const(markerStrokeColor),
+                    strokeWidth = const(2.dp),
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun LocalRoutePreview(samples: List<LocationSample>) {
-    val bounds = remember(samples) { samples.routeBounds() }
+    val bounds = remember(samples) { samples.firstOrNull()?.let { samples.routeBounds() } }
     val routeColor = MaterialTheme.colorScheme.primary
     val startColor = MaterialTheme.colorScheme.tertiary
     val endColor = MaterialTheme.colorScheme.error
     val gridColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)
     val backgroundColor = MaterialTheme.colorScheme.surface
-    val description = stringResource(R.string.location_local_route_preview_accessibility)
+    val description = stringResource(
+        if (samples.isEmpty()) {
+            R.string.location_local_route_preview_empty_accessibility
+        } else {
+            R.string.location_local_route_preview_accessibility
+        },
+    )
 
     Canvas(
         modifier = Modifier
@@ -215,25 +225,27 @@ private fun LocalRoutePreview(samples: List<LocationSample>) {
             )
         }
 
-        fun LocationSample.offset(): Offset {
-            val x = ((longitude - bounds.west) / (bounds.east - bounds.west)).toFloat() * size.width
-            val y = size.height -
-                ((latitude - bounds.south) / (bounds.north - bounds.south)).toFloat() * size.height
-            return Offset(x, y)
-        }
+        if (bounds != null) {
+            fun LocationSample.offset(): Offset {
+                val x = ((longitude - bounds.west) / (bounds.east - bounds.west)).toFloat() * size.width
+                val y = size.height -
+                    ((latitude - bounds.south) / (bounds.north - bounds.south)).toFloat() * size.height
+                return Offset(x, y)
+            }
 
-        samples.zipWithNext().forEach { (from, to) ->
-            drawLine(
-                color = routeColor,
-                start = from.offset(),
-                end = to.offset(),
-                strokeWidth = 6.dp.toPx(),
-                cap = StrokeCap.Round,
-            )
-        }
-        drawCircle(startColor, radius = 7.dp.toPx(), center = samples.first().offset())
-        if (samples.size > 1) {
-            drawCircle(endColor, radius = 7.dp.toPx(), center = samples.last().offset())
+            samples.zipWithNext().forEach { (from, to) ->
+                drawLine(
+                    color = routeColor,
+                    start = from.offset(),
+                    end = to.offset(),
+                    strokeWidth = 6.dp.toPx(),
+                    cap = StrokeCap.Round,
+                )
+            }
+            drawCircle(startColor, radius = 7.dp.toPx(), center = samples.first().offset())
+            if (samples.size > 1) {
+                drawCircle(endColor, radius = 7.dp.toPx(), center = samples.last().offset())
+            }
         }
     }
 }

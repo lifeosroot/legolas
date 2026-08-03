@@ -190,6 +190,16 @@ internal fun LocationRouteTab(
                 onQualitySelected = viewModel::selectQuality,
             )
         }
+        item {
+            LocationRouteMapCard(
+                samples = state.samples,
+                isExternalBasemapEnabled = state.isExternalBasemapEnabled,
+                onEnableExternalBasemap = { showBasemapDisclosure = true },
+                onDisableExternalBasemap = {
+                    viewModel.setExternalBasemapEnabled(false)
+                },
+            )
+        }
 
         when {
             !hasServerAccess -> item {
@@ -241,16 +251,6 @@ internal fun LocationRouteTab(
             }
 
             else -> {
-                item {
-                    LocationRouteMapCard(
-                        samples = state.samples,
-                        isExternalBasemapEnabled = state.isExternalBasemapEnabled,
-                        onEnableExternalBasemap = { showBasemapDisclosure = true },
-                        onDisableExternalBasemap = {
-                            viewModel.setExternalBasemapEnabled(false)
-                        },
-                    )
-                }
                 item {
                     Text(
                         text = stringResource(R.string.location_route_sample_count, state.samples.size),

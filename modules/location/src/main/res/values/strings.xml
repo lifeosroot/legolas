@@ -24,6 +24,7 @@
     <string name="location_external_basemap_description">Off by default. When enabled, visible map tile coordinates are requested from OpenFreeMap.</string>
     <string name="location_local_route_preview_description">Private route preview · no map tile requests leave this device.</string>
     <string name="location_local_route_preview_accessibility">Local route preview showing the collected path from start to end</string>
+    <string name="location_local_route_preview_empty_accessibility">Local map preview with no route for the selected date</string>
     <string name="location_external_basemap_active">Background map provided by OpenFreeMap. Approximate visible areas are requested from its tile service.</string>
     <string name="location_external_basemap_unavailable">The background map could not load. Your route remains visible locally.</string>
     <string name="location_use_external_basemap">Use background map</string>
