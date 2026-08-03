@@ -10,10 +10,10 @@ App shell (Compose + Hilt)
         └── :modules:location
               ├── Fused Location + Activity Recognition
               ├── Room outbox
-              └── authenticated Arwen upload
+              └── authenticated Arwen upload and route reads
 ```
 
-The location module is compiled into this build but is **off by default**. It does not collect or upload anything until the user enables it and grants the required Android permissions. See [Location collection](docs/location-collection.md) for the state machine, data fields, opt-out behavior, and device test checklist.
+The location module is compiled into this build but is **off by default**. It does not collect or upload anything until the user enables it and grants the required Android permissions. Existing samples can be read by date from the paired Arwen server without enabling collection; map rendering is not implemented yet. See [Location collection](docs/location-collection.md) for the state machine, data fields, opt-out behavior, and device test checklist.
 
 To build Legolas without the location module, its permissions, services, and dependencies:
 

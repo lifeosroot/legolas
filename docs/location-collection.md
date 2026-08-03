@@ -38,6 +38,10 @@ Turning the module off stops the service, cancels scheduled uploads, and prevent
 
 Uploads are idempotent by owner and client sample ID. Network failures, HTTP 408/429, and server errors are retried; permanent client or authentication errors are surfaced without an endless background retry.
 
+## Route reading
+
+The Route tab reads owner-scoped samples for a selected Seoul date from the paired Arwen server. It supports previous, today, and next date controls, quality filtering, refresh, and explicit loading, empty, permission, and failure states. This read-only view works even when collection is off. Map rendering is intentionally a separate step and is not included yet.
+
 ## Transport
 
 Use HTTPS for every real-device Arwen deployment. Plain HTTP is restricted to `localhost`, `127.0.0.1`, `::1`, and `10.0.2.2` for local development. A self-hosted LAN deployment therefore needs a TLS reverse proxy and a certificate trusted by the phone.

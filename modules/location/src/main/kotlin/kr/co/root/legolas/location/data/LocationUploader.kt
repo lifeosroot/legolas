@@ -1,10 +1,6 @@
 package kr.co.root.legolas.location.data
 
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.core.content.ContextCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -12,7 +8,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import kr.co.root.legolas.location.permission.requiresLocalNetworkPermission
+import kr.co.root.legolas.location.permission.hasLocationServerAccess
 import java.net.HttpURLConnection
 import java.net.URI
 import java.time.Instant
@@ -40,11 +36,7 @@ class LocationUploader @Inject constructor(
                     message = "Arwen pairing is required before location samples can be uploaded.",
                     retryable = false,
                 )
-            if (Build.VERSION.SDK_INT >= Android17ApiLevel &&
-                requiresLocalNetworkPermission(config.serverUrl) &&
-                ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_LOCAL_NETWORK) !=
-                PackageManager.PERMISSION_GRANTED
-            ) {
+            if (!context.hasLocationServerAccess(config.serverUrl)) {
                 throw LocationUploadException(
                     message = "로컬 Arwen 서버로 전송하려면 주변 네트워크 권한이 필요합니다.",
                     retryable = false,
@@ -123,5 +115,3 @@ internal fun Throwable.shouldRetryLocationUpload(): Boolean = when (this) {
     is IOException -> true
     else -> false
 }
-
-private const val Android17ApiLevel = 37

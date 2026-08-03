@@ -115,9 +115,8 @@ fun LocationModuleScreen(
         },
     ) { innerPadding ->
         when (tabs[selectedTabIndex]) {
-            LocationTopTab.Route -> LocationEmptyTab(
-                title = stringResource(R.string.location_route_empty_title),
-                description = stringResource(R.string.location_route_empty_description),
+            LocationTopTab.Route -> LocationRouteTab(
+                serverUrl = serverUrl,
                 modifier = Modifier.padding(innerPadding),
             )
             LocationTopTab.Timeline -> LocationEmptyTab(
