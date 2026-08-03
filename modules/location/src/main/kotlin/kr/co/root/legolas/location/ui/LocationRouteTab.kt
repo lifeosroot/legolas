@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -49,12 +50,15 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kr.co.root.legolas.location.R
 import kr.co.root.legolas.location.data.LocationSample
 import kr.co.root.legolas.location.data.LocationSampleQuality
 import kr.co.root.legolas.location.data.LocationSampleQuery
+import kr.co.root.legolas.location.data.LocationSettingsRepository
 import kr.co.root.legolas.location.permission.hasLocationServerAccess
 import java.text.DateFormat
 import java.time.LocalDate
@@ -69,6 +73,7 @@ data class LocationRouteUiState(
     val selectedDate: LocalDate = LocalDate.now(SeoulZone),
     val selectedQuality: LocationSampleQuality? = null,
     val samples: List<LocationSample> = emptyList(),
+    val isExternalBasemapEnabled: Boolean = false,
     val isLoading: Boolean = false,
     val hasError: Boolean = false,
 )
@@ -76,6 +81,7 @@ data class LocationRouteUiState(
 @HiltViewModel
 class LocationRouteViewModel @Inject constructor(
     private val query: LocationSampleQuery,
+    private val settingsRepository: LocationSettingsRepository,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(LocationRouteUiState())
     val uiState = mutableUiState.asStateFlow()
@@ -83,6 +89,14 @@ class LocationRouteViewModel @Inject constructor(
 
     init {
         loadSamples()
+        viewModelScope.launch {
+            settingsRepository.state
+                .map { it.externalBasemapEnabled }
+                .distinctUntilChanged()
+                .collect { enabled ->
+                    mutableUiState.update { it.copy(isExternalBasemapEnabled = enabled) }
+                }
+        }
     }
 
     fun moveDate(days: Long) {
@@ -101,6 +115,10 @@ class LocationRouteViewModel @Inject constructor(
     }
 
     fun refresh() = loadSamples()
+
+    fun setExternalBasemapEnabled(enabled: Boolean) {
+        viewModelScope.launch { settingsRepository.setExternalBasemapEnabled(enabled) }
+    }
 
     private fun loadSamples() {
         val date = mutableUiState.value.selectedDate
@@ -140,6 +158,7 @@ internal fun LocationRouteTab(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    var showBasemapDisclosure by rememberSaveable { mutableStateOf(false) }
     var hasServerAccess by remember(serverUrl) {
         mutableStateOf(context.hasLocationServerAccess(serverUrl))
     }
@@ -223,6 +242,16 @@ internal fun LocationRouteTab(
 
             else -> {
                 item {
+                    LocationRouteMapCard(
+                        samples = state.samples,
+                        isExternalBasemapEnabled = state.isExternalBasemapEnabled,
+                        onEnableExternalBasemap = { showBasemapDisclosure = true },
+                        onDisableExternalBasemap = {
+                            viewModel.setExternalBasemapEnabled(false)
+                        },
+                    )
+                }
+                item {
                     Text(
                         text = stringResource(R.string.location_route_sample_count, state.samples.size),
                         style = MaterialTheme.typography.titleMedium,
@@ -233,6 +262,16 @@ internal fun LocationRouteTab(
                 }
             }
         }
+    }
+
+    if (showBasemapDisclosure) {
+        ExternalBasemapDisclosureDialog(
+            onConfirm = {
+                showBasemapDisclosure = false
+                viewModel.setExternalBasemapEnabled(true)
+            },
+            onDismiss = { showBasemapDisclosure = false },
+        )
     }
 }
 

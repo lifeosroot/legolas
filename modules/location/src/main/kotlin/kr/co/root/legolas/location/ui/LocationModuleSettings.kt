@@ -195,6 +195,7 @@ private fun LocationModuleSettings(
         requiresLocalNetworkPermission(serverUrl)
     }
     var showEnableDisclosure by rememberSaveable { mutableStateOf(false) }
+    var showBasemapDisclosure by rememberSaveable { mutableStateOf(false) }
     var showBackgroundAccessGuide by rememberSaveable { mutableStateOf(false) }
     val foregroundPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
@@ -336,6 +337,32 @@ private fun LocationModuleSettings(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         ) {
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.location_external_basemap)) },
+                supportingContent = {
+                    Text(stringResource(R.string.location_external_basemap_description))
+                },
+                trailingContent = {
+                    Switch(
+                        checked = state.isExternalBasemapEnabled,
+                        onCheckedChange = { enabled ->
+                            if (enabled) {
+                                showBasemapDisclosure = true
+                            } else {
+                                viewModel.setExternalBasemapEnabled(false)
+                            }
+                        },
+                        enabled = !state.isLoading,
+                    )
+                },
+                colors = transparentListItemColors(),
+            )
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        ) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -456,6 +483,16 @@ private fun LocationModuleSettings(
                     Text(stringResource(R.string.location_keep_off))
                 }
             },
+        )
+    }
+
+    if (showBasemapDisclosure) {
+        ExternalBasemapDisclosureDialog(
+            onConfirm = {
+                showBasemapDisclosure = false
+                viewModel.setExternalBasemapEnabled(true)
+            },
+            onDismiss = { showBasemapDisclosure = false },
         )
     }
 

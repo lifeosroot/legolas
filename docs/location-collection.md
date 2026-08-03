@@ -40,7 +40,11 @@ Uploads are idempotent by owner and client sample ID. Network failures, HTTP 408
 
 ## Route reading
 
-The Route tab reads owner-scoped samples for a selected Seoul date from the paired Arwen server. It supports previous, today, and next date controls, quality filtering, refresh, and explicit loading, empty, permission, and failure states. This read-only view works even when collection is off. Map rendering is intentionally a separate step and is not included yet.
+The Route tab reads owner-scoped samples for a selected Seoul date from the paired Arwen server. It supports previous, today, and next date controls, quality filtering, refresh, and explicit loading, empty, permission, and failure states. This read-only view works even when collection is off.
+
+The default route preview is drawn locally and makes no map-tile request. The optional background map uses [MapLibre Compose](https://maplibre.org/maplibre-compose/) with [OpenFreeMap](https://openfreemap.org/), requires no API key, and stays off until the user accepts a separate disclosure. Once enabled, OpenFreeMap receives tile requests that reveal the approximate area being viewed; Legolas does not add location samples, the Arwen API key, or account data to those requests. The setting is persisted and can be turned off from either the Route or Settings tab. If the provider cannot load, Legolas falls back to the local preview.
+
+The provider is represented by a single style URL in the location module so a self-hosted MapLibre-compatible style can replace it later without changing route data or UI state.
 
 ## Transport
 

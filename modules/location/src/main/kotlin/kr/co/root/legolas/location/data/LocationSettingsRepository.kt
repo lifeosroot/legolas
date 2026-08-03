@@ -18,6 +18,7 @@ private val Context.locationDataStore by preferencesDataStore(name = "location")
 
 data class LocationTrackingState(
     val enabled: Boolean = false,
+    val externalBasemapEnabled: Boolean = false,
     val serviceRunning: Boolean = false,
     val motion: String = "unknown",
     val queuedCount: Int = 0,
@@ -39,6 +40,10 @@ class LocationSettingsRepository @Inject constructor(
             it[TRACKING_ENABLED] = enabled
             if (!enabled) it[SERVICE_RUNNING] = false
         }
+    }
+
+    suspend fun setExternalBasemapEnabled(enabled: Boolean) {
+        dataStore.edit { it[EXTERNAL_BASEMAP_ENABLED] = enabled }
     }
 
     suspend fun setServiceRunning(running: Boolean) {
@@ -69,6 +74,7 @@ class LocationSettingsRepository @Inject constructor(
 
     private fun Preferences.toTrackingState() = LocationTrackingState(
         enabled = this[TRACKING_ENABLED] ?: false,
+        externalBasemapEnabled = this[EXTERNAL_BASEMAP_ENABLED] ?: false,
         serviceRunning = this[SERVICE_RUNNING] ?: false,
         motion = this[MOTION] ?: "unknown",
         queuedCount = this[QUEUED_COUNT] ?: 0,
@@ -78,6 +84,7 @@ class LocationSettingsRepository @Inject constructor(
 
     private companion object {
         val TRACKING_ENABLED = booleanPreferencesKey("tracking_enabled")
+        val EXTERNAL_BASEMAP_ENABLED = booleanPreferencesKey("external_basemap_enabled")
         val SERVICE_RUNNING = booleanPreferencesKey("service_running")
         val MOTION = stringPreferencesKey("motion")
         val QUEUED_COUNT = intPreferencesKey("queued_count")

@@ -43,6 +43,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
     implementation("com.google.dagger:hilt-android:2.60.1")
     implementation("com.google.android.gms:play-services-location:21.4.0")
+    implementation("org.maplibre.compose:maplibre-compose:0.13.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
 
     ksp("com.google.dagger:hilt-android-compiler:2.60.1")

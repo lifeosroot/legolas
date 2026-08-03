@@ -15,6 +15,7 @@ import javax.inject.Inject
 data class LocationSettingsUiState(
     val isLoading: Boolean = true,
     val isEnabled: Boolean = false,
+    val isExternalBasemapEnabled: Boolean = false,
     val isServiceRunning: Boolean = false,
     val motion: String = "unknown",
     val queuedCount: Int = 0,
@@ -32,6 +33,7 @@ class LocationSettingsViewModel @Inject constructor(
             LocationSettingsUiState(
                 isLoading = false,
                 isEnabled = it.enabled,
+                isExternalBasemapEnabled = it.externalBasemapEnabled,
                 isServiceRunning = it.serviceRunning,
                 motion = it.motion,
                 queuedCount = it.queuedCount,
@@ -55,6 +57,10 @@ class LocationSettingsViewModel @Inject constructor(
                 repository.setEnabled(true)
             }
         }
+    }
+
+    fun setExternalBasemapEnabled(enabled: Boolean) {
+        viewModelScope.launch { repository.setExternalBasemapEnabled(enabled) }
     }
 
     fun syncTracking(canTrackInBackground: Boolean) {
