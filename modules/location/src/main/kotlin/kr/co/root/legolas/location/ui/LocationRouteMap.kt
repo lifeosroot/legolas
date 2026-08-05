@@ -2,11 +2,13 @@ package kr.co.root.legolas.location.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,15 +26,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import kr.co.root.legolas.location.R
 import kr.co.root.legolas.location.data.LocationSample
 import org.maplibre.compose.camera.rememberCameraState
@@ -53,6 +60,8 @@ internal fun LocationRouteMapCard(
     onDisableExternalBasemap: () -> Unit,
 ) {
     var mapLoadFailed by remember(isExternalBasemapEnabled, samples) { mutableStateOf(false) }
+    var isMapDialogOpen by rememberSaveable { mutableStateOf(false) }
+    val openMapDescription = stringResource(R.string.location_open_fullscreen_map)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -62,24 +71,39 @@ internal fun LocationRouteMapCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = stringResource(R.string.location_route_map),
-                style = MaterialTheme.typography.titleMedium,
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.location_route_map),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f),
+                )
+                TextButton(onClick = { isMapDialogOpen = true }) {
+                    Text(stringResource(R.string.location_view_larger))
+                }
+            }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(320.dp)
                     .clip(MaterialTheme.shapes.medium),
             ) {
-                if (isExternalBasemapEnabled && !mapLoadFailed) {
-                    ExternalRouteMap(
-                        samples = samples,
-                        onLoadFailed = { mapLoadFailed = true },
-                    )
-                } else {
-                    LocalRoutePreview(samples)
-                }
+                RouteMap(
+                    samples = samples,
+                    showExternalBasemap = isExternalBasemapEnabled && !mapLoadFailed,
+                    onLoadFailed = { mapLoadFailed = true },
+                )
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .semantics { contentDescription = openMapDescription }
+                        .clickable(
+                            role = Role.Button,
+                            onClick = { isMapDialogOpen = true },
+                        ),
+                )
             }
 
             Text(
@@ -117,6 +141,78 @@ internal fun LocationRouteMapCard(
                     }
                 }
             }
+        }
+    }
+
+    if (isMapDialogOpen) {
+        RouteMapDialog(
+            samples = samples,
+            showExternalBasemap = isExternalBasemapEnabled && !mapLoadFailed,
+            onLoadFailed = { mapLoadFailed = true },
+            onDismiss = { isMapDialogOpen = false },
+        )
+    }
+}
+
+@Composable
+private fun RouteMap(
+    samples: List<LocationSample>,
+    showExternalBasemap: Boolean,
+    onLoadFailed: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier = modifier.fillMaxSize()) {
+        if (showExternalBasemap) {
+            ExternalRouteMap(
+                samples = samples,
+                onLoadFailed = onLoadFailed,
+            )
+        } else {
+            LocalRoutePreview(samples)
+        }
+    }
+}
+
+@Composable
+private fun RouteMapDialog(
+    samples: List<LocationSample>,
+    showExternalBasemap: Boolean,
+    onLoadFailed: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.location_route_map),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.weight(1f),
+                )
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.location_close))
+                }
+            }
+            RouteMap(
+                samples = samples,
+                showExternalBasemap = showExternalBasemap,
+                onLoadFailed = onLoadFailed,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .clip(MaterialTheme.shapes.large),
+            )
         }
     }
 }

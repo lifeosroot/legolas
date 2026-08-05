@@ -20,6 +20,9 @@
     <string name="location_refresh">Refresh</string>
     <string name="location_retry">Try again</string>
     <string name="location_route_map">Map</string>
+    <string name="location_view_larger">View larger</string>
+    <string name="location_open_fullscreen_map">Open map in full screen</string>
+    <string name="location_close">Close</string>
     <string name="location_external_basemap">OpenFreeMap background map</string>
     <string name="location_external_basemap_description">Off by default. When enabled, visible map tile coordinates are requested from OpenFreeMap.</string>
     <string name="location_local_route_preview_description">Private route preview · no map tile requests leave this device.</string>
