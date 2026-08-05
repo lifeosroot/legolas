@@ -37,6 +37,8 @@ The Google Code Scanner handles camera access without adding a camera permission
 
 Real devices must pair to an HTTPS Arwen URL. Plain HTTP is accepted only for loopback and the Android emulator host (`10.0.2.2`) so API keys and location samples are not exposed on the network. Android 17 also asks for local-network access when the paired host is on the LAN.
 
+While the Legolas process is running, it checks Arwen's authenticated health endpoint immediately and every 60 seconds. An explicit `401` or `403` stops location collection, deletes pending samples to prevent cross-owner upload, clears the pairing credential, and returns to pairing. Network timeouts and server errors keep the pairing and retry on the next check.
+
 ## Build
 
 ```bash

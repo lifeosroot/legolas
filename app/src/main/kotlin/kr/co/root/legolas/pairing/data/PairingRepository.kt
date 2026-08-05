@@ -7,18 +7,23 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kr.co.root.legolas.pairing.model.PairingConfig
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kr.co.root.legolas.pairing.model.PairingConfig
 import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URI
 import javax.inject.Inject
+import javax.inject.Singleton
 
 private val Context.pairingDataStore by preferencesDataStore(name = "pairing")
 
+@Singleton
 class PairingRepository @Inject constructor(
     @ApplicationContext context: Context,
 ) {
@@ -45,6 +50,32 @@ class PairingRepository @Inject constructor(
         dataStore.edit { it.clear() }
     }
 
+    internal suspend fun checkHealth(
+        pairing: PairingConfig,
+    ): PairingHealthResult = withContext(Dispatchers.IO) {
+        try {
+            val connection = (
+                pairingHealthEndpoint(pairing.serverUrl).openConnection() as HttpURLConnection
+            ).apply {
+                    requestMethod = "GET"
+                    connectTimeout = HEALTH_TIMEOUT_MILLIS
+                    readTimeout = HEALTH_TIMEOUT_MILLIS
+                    instanceFollowRedirects = false
+                    setRequestProperty("Authorization", "Bearer ${pairing.apiKey}")
+                    setRequestProperty("Accept", "application/json")
+                }
+            try {
+                pairingHealthResult(connection.responseCode)
+            } finally {
+                connection.disconnect()
+            }
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (_: Exception) {
+            PairingHealthResult.Unavailable
+        }
+    }
+
     private fun Preferences.toPairingConfig(): PairingConfig? {
         val serverUrl = this[SERVER_URL] ?: return null
         val encryptedApiKey = this[API_KEY] ?: return null
@@ -54,7 +85,24 @@ class PairingRepository @Inject constructor(
     }
 
     private companion object {
+        const val HEALTH_TIMEOUT_MILLIS = 10_000
         val SERVER_URL = stringPreferencesKey("server_url")
         val API_KEY = stringPreferencesKey("api_key")
     }
 }
+
+internal enum class PairingHealthResult {
+    Healthy,
+    Rejected,
+    Unavailable,
+}
+
+internal fun pairingHealthResult(statusCode: Int): PairingHealthResult = when (statusCode) {
+    in 200..299 -> PairingHealthResult.Healthy
+    HttpURLConnection.HTTP_UNAUTHORIZED, HttpURLConnection.HTTP_FORBIDDEN ->
+        PairingHealthResult.Rejected
+    else -> PairingHealthResult.Unavailable
+}
+
+internal fun pairingHealthEndpoint(serverUrl: String) =
+    URI.create(serverUrl.trimEnd('/') + "/api/health").toURL()
