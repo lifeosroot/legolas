@@ -48,7 +48,7 @@ The provider is represented by a single style URL in the location module so a se
 
 ## Transport
 
-Use HTTPS for every real-device Arwen deployment. Plain HTTP is restricted to `localhost`, `127.0.0.1`, `::1`, and `10.0.2.2` for local development. A self-hosted LAN deployment therefore needs a TLS reverse proxy and a certificate trusted by the phone.
+Use HTTPS for internet-facing Arwen deployments. Plain HTTP is accepted for `localhost`, `127.0.0.1`, `::1`, and RFC 1918 private IPv4 addresses (`10/8`, `172.16/12`, and `192.168/16`), including `10.0.2.2`. Use cleartext pairing only on a trusted LAN because the API key and location samples are visible in transit.
 
 ## Verification
 

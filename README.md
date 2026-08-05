@@ -35,7 +35,7 @@ See [Legolas Design System](docs/design-system.md). It records the shared Root c
 
 The Google Code Scanner handles camera access without adding a camera permission to Legolas. Use **Forget Arwen** to remove the locally stored connection.
 
-Real devices must pair to an HTTPS Arwen URL. Plain HTTP is accepted only for loopback and the Android emulator host (`10.0.2.2`) so API keys and location samples are not exposed on the network. Android 17 also asks for local-network access when the paired host is on the LAN.
+Plain HTTP is accepted for loopback and RFC 1918 private IPv4 addresses (`10/8`, `172.16/12`, and `192.168/16`), including the Android emulator host (`10.0.2.2`). Use it only on a trusted LAN because the API key and location samples are not encrypted in transit. Public addresses require HTTPS. Android 17 also asks for local-network access when the paired host is on the LAN.
 
 While the Legolas process is running, it checks Arwen's authenticated health endpoint immediately and every 60 seconds. After five consecutive network or server failures, Legolas asks whether to sign out; choosing to stay signed in suppresses the warning until a successful check. An explicit `401` or `403` stops location collection, deletes pending samples to prevent cross-owner upload, clears the pairing credential, and returns to pairing.
 

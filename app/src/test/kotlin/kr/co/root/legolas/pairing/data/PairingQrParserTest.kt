@@ -41,20 +41,35 @@ class PairingQrParserTest {
     }
 
     @Test
-    fun `allows cleartext only for local emulator development`() {
-        val pairing = PairingQrParser.parse(
-            "legolas://pair?server=http%3A%2F%2F10.0.2.2%3A8080&apiKey=arwen_test",
-        )
+    fun `allows cleartext private IPv4 servers`() {
+        listOf(
+            "10.0.2.2",
+            "10.255.255.255",
+            "172.16.0.1",
+            "172.31.255.255",
+            "192.168.0.10",
+        ).forEach { host ->
+            val pairing = PairingQrParser.parse(
+                "legolas://pair?server=http%3A%2F%2F$host%3A8080&apiKey=arwen_test",
+            )
 
-        assertEquals("http://10.0.2.2:8080", pairing.serverUrl)
+            assertEquals("http://$host:8080", pairing.serverUrl)
+        }
     }
 
     @Test
-    fun `rejects cleartext LAN server because location and API key require TLS`() {
-        assertThrows(IllegalArgumentException::class.java) {
-            PairingQrParser.parse(
-                "legolas://pair?server=http%3A%2F%2F192.168.0.10%3A8080&apiKey=arwen_test",
-            )
+    fun `rejects cleartext addresses outside private IPv4 ranges`() {
+        listOf(
+            "8.8.8.8",
+            "172.15.255.255",
+            "172.32.0.1",
+            "192.169.0.1",
+        ).forEach { host ->
+            assertThrows(IllegalArgumentException::class.java) {
+                PairingQrParser.parse(
+                    "legolas://pair?server=http%3A%2F%2F$host%3A8080&apiKey=arwen_test",
+                )
+            }
         }
     }
 
