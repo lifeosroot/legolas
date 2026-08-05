@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kr.co.root.legolas.feature.LocationFeature
+import kr.co.root.legolas.pairing.data.PairingHealthMonitor
 import kr.co.root.legolas.pairing.data.PairingQrParser
 import kr.co.root.legolas.pairing.data.PairingRepository
 import kotlinx.coroutines.CancellationException
@@ -18,20 +19,27 @@ data class PairingUiState(
     val isLoading: Boolean = true,
     val serverUrl: String? = null,
     val errorMessage: String? = null,
+    val shouldSuggestLogout: Boolean = false,
 )
 
 @HiltViewModel
 class PairingViewModel @Inject constructor(
     private val repository: PairingRepository,
     private val locationFeature: LocationFeature,
+    private val healthMonitor: PairingHealthMonitor,
 ) : ViewModel() {
     private val errorMessage = MutableStateFlow<String?>(null)
 
-    val uiState = combine(repository.pairing, errorMessage) { pairing, error ->
+    val uiState = combine(
+        repository.pairing,
+        errorMessage,
+        healthMonitor.shouldSuggestLogout,
+    ) { pairing, error, shouldSuggestLogout ->
         PairingUiState(
             isLoading = false,
             serverUrl = pairing?.serverUrl,
             errorMessage = error,
+            shouldSuggestLogout = shouldSuggestLogout,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -61,6 +69,10 @@ class PairingViewModel @Inject constructor(
 
     fun clearError() {
         errorMessage.value = null
+    }
+
+    fun dismissHealthWarning() {
+        healthMonitor.dismissLogoutSuggestion()
     }
 
     fun forget(failedMessage: String) {

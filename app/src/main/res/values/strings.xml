@@ -25,4 +25,8 @@
     <string name="scanner_failed">Could not open the QR scanner.</string>
     <string name="pairing_save_failed">Could not securely save the Arwen connection.</string>
     <string name="pairing_forget_failed">Could not remove the Arwen connection.</string>
+    <string name="arwen_unreachable_title">Arwen is not responding</string>
+    <string name="arwen_unreachable_message">Legolas could not complete five consecutive health checks for %1$s. Do you want to sign out? Signing out stops location collection and deletes pending location samples.</string>
+    <string name="sign_out">Sign out</string>
+    <string name="stay_signed_in">Stay signed in</string>
 </resources>

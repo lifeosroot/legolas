@@ -29,4 +29,29 @@ class PairingHealthCheckTest {
             pairingHealthEndpoint("https://arwen.example.com/").toString(),
         )
     }
+
+    @Test
+    fun `five consecutive failures trigger the logout suggestion threshold`() {
+        var failures = 0
+
+        repeat(HEALTH_FAILURES_BEFORE_LOGOUT_SUGGESTION - 1) {
+            failures = nextHealthFailureCount(failures, PairingHealthResult.Unavailable)
+        }
+        assertEquals(4, failures)
+
+        failures = nextHealthFailureCount(failures, PairingHealthResult.Unavailable)
+        assertEquals(HEALTH_FAILURES_BEFORE_LOGOUT_SUGGESTION, failures)
+    }
+
+    @Test
+    fun `a completed health check resets consecutive failures`() {
+        assertEquals(
+            0,
+            nextHealthFailureCount(4, PairingHealthResult.Healthy),
+        )
+        assertEquals(
+            0,
+            nextHealthFailureCount(4, PairingHealthResult.Rejected),
+        )
+    }
 }

@@ -47,6 +47,7 @@ class MainActivity : ComponentActivity() {
                     onForget = {
                         viewModel.forget(getString(R.string.pairing_forget_failed))
                     },
+                    onDismissHealthWarning = viewModel::dismissHealthWarning,
                 )
             }
         }
