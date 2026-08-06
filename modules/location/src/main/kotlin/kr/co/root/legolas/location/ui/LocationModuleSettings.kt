@@ -203,6 +203,12 @@ private fun LocationModuleSettings(
         permissionStatus = context.locationPermissionStatus()
         viewModel.syncTracking(permissionStatus.canTrackInBackground)
     }
+    val backgroundPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) {
+        permissionStatus = context.locationPermissionStatus()
+        viewModel.syncTracking(permissionStatus.canTrackInBackground)
+    }
     val settingsLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) {
@@ -505,7 +511,9 @@ private fun LocationModuleSettings(
                 TextButton(
                     onClick = {
                         showBackgroundAccessGuide = false
-                        settingsLauncher.launch(context.appLocationSettingsIntent())
+                        backgroundPermissionLauncher.launch(
+                            Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+                        )
                     },
                 ) {
                     Text(stringResource(R.string.open_location_settings))
