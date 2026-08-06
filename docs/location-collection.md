@@ -58,6 +58,8 @@ Run the deterministic checks with:
 ./gradlew test lintDebug assembleDebug
 ```
 
+Show only Legolas-owned diagnostics in a terminal with `adb logcat -s Legolas`, or use `tag:Legolas` in Android Studio Logcat. Location upload logs include the endpoint, batch size, HTTP status, and retry decision, but never the API key or coordinates.
+
 Before a release, also test on the supported Android versions: API 23, 29, 30/31, 33, 34, and 37. Cover precise versus approximate location, permission revocation, device location off, immediate enable/disable, a delayed activity update, process death and sticky restart, reboot recovery, offline queue recovery, local-network denial, and forgetting an empty and non-empty outbox.
 
 OEM battery restrictions can still delay callbacks. Legolas deliberately does not request a blanket battery-optimization exemption; users can allow unrestricted background use in Android system settings when their device vendor requires it.

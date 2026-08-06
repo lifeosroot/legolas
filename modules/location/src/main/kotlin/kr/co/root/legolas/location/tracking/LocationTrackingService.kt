@@ -1343,7 +1343,7 @@ private const val ActivityRecognitionDiagnosticPermissionMissing = "PERMISSION_M
 private const val ActivityRecognitionDiagnosticIntentWithoutResult = "INTENT_WITHOUT_RESULT"
 private const val ActivityRecognitionDiagnosticExtractResultNull = "EXTRACT_RESULT_NULL"
 private const val ActivityRecognitionDiagnosticUpdateReceived = "UPDATE_RECEIVED"
-private const val LogTag = "RootLocationEngine"
+private const val LogTag = "Legolas"
 
 private val TransitionSampleMotions = setOf(
     RootActivityMotion.Moving,

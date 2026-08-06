@@ -1,7 +1,9 @@
 package kr.co.root.legolas.location.data
 
 import android.content.Context
+import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -61,6 +63,7 @@ class LocationUploader @Inject constructor(
             setRequestProperty("Authorization", "Bearer ${config.apiKey}")
             setRequestProperty("Content-Type", "application/json")
         }
+        Log.i(LogTag, "LocationUpload start endpoint=$endpoint samples=${samples.size}")
         try {
             connection.outputStream.bufferedWriter(Charsets.UTF_8).use {
                 it.write(samples.toJson().toString())
@@ -76,6 +79,20 @@ class LocationUploader @Inject constructor(
                     retryable = status == 408 || status == 429 || status >= 500,
                 )
             }
+            Log.i(
+                LogTag,
+                "LocationUpload success endpoint=$endpoint status=$status samples=${samples.size}",
+            )
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (throwable: Throwable) {
+            Log.w(
+                LogTag,
+                "LocationUpload failed endpoint=$endpoint samples=${samples.size} " +
+                    "retryable=${throwable.shouldRetryLocationUpload()}",
+                throwable,
+            )
+            throw throwable
         } finally {
             connection.disconnect()
         }
@@ -115,3 +132,5 @@ internal fun Throwable.shouldRetryLocationUpload(): Boolean = when (this) {
     is IOException -> true
     else -> false
 }
+
+private const val LogTag = "Legolas"
