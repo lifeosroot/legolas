@@ -124,9 +124,8 @@ fun LocationModuleScreen(
                 description = stringResource(R.string.location_timeline_empty_description),
                 modifier = Modifier.padding(innerPadding),
             )
-            LocationTopTab.Places -> LocationEmptyTab(
-                title = stringResource(R.string.location_places_empty_title),
-                description = stringResource(R.string.location_places_empty_description),
+            LocationTopTab.Places -> LocationPlacesTab(
+                serverUrl = serverUrl,
                 modifier = Modifier.padding(innerPadding),
             )
             LocationTopTab.Settings -> Column(

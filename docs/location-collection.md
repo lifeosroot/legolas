@@ -46,6 +46,12 @@ The default route preview is drawn locally and makes no map-tile request. The op
 
 The provider is represented by a single style URL in the location module so a self-hosted MapLibre-compatible style can replace it later without changing route data or UI state.
 
+## Saved places
+
+The Places tab manages owner-scoped places on the paired Arwen server. A place has a name, center coordinate, and radius. Users can enter coordinates directly or, after accepting the existing OpenFreeMap disclosure, tap the map and preview the radius. New places start from the most recent uploaded sample when one is available.
+
+Reading and editing places does not enable location collection. The Android client supports loading, empty, local-network permission, validation, save failure, and delete confirmation states. The Timeline tab remains an explicit placeholder: stay/move derivation and timeline APIs have not been ported yet.
+
 ## Transport
 
 Use HTTPS for internet-facing Arwen deployments. Plain HTTP is accepted for `localhost`, `127.0.0.1`, `::1`, and RFC 1918 private IPv4 addresses (`10/8`, `172.16/12`, and `192.168/16`), including `10.0.2.2`. Use cleartext pairing only on a trusted LAN because the API key and location samples are visible in transit.

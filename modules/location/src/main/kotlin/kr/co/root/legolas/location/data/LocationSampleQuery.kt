@@ -41,7 +41,11 @@ class LocationSampleQuery @Inject constructor(
     suspend fun samplesOn(
         date: LocalDate,
         quality: LocationSampleQuality?,
-    ): List<LocationSample> = withContext(Dispatchers.IO) {
+    ): List<LocationSample> = request(locationSamplesPath(date, quality))
+
+    suspend fun latest(): LocationSample? = request(RecentLocationSamplesPath).firstOrNull()
+
+    private suspend fun request(path: String): List<LocationSample> = withContext(Dispatchers.IO) {
         val config = serverConfigProvider.current()
             ?: throw IOException("Arwen pairing is required")
         if (!context.hasLocationServerAccess(config.serverUrl)) {
@@ -49,7 +53,7 @@ class LocationSampleQuery @Inject constructor(
         }
 
         val endpoint = URI.create(
-            config.serverUrl.trimEnd('/') + locationSamplesPath(date, quality),
+            config.serverUrl.trimEnd('/') + path,
         ).toURL()
         val connection = (endpoint.openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"
@@ -70,6 +74,8 @@ class LocationSampleQuery @Inject constructor(
         }
     }
 }
+
+internal const val RecentLocationSamplesPath = "/api/location/samples/recent?limit=1"
 
 internal fun locationSamplesPath(
     date: LocalDate,

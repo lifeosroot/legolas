@@ -18,4 +18,9 @@ class LocationSampleQueryTest {
             locationSamplesPath(date, LocationSampleQuality.GOOD),
         )
     }
+
+    @Test
+    fun `latest sample path requests a single sample`() {
+        assertEquals("/api/location/samples/recent?limit=1", RecentLocationSamplesPath)
+    }
 }

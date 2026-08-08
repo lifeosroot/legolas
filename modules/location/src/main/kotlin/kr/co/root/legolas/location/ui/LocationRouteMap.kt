@@ -412,5 +412,5 @@ private fun RouteBounds.toMapLibreBounds(): BoundingBox = BoundingBox(
     north = north,
 )
 
-private const val OpenFreeMapStyleUrl = "https://tiles.openfreemap.org/styles/liberty"
+internal const val OpenFreeMapStyleUrl = "https://tiles.openfreemap.org/styles/liberty"
 private const val MinimumBoundsPaddingDegrees = 0.002
