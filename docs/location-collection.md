@@ -50,7 +50,11 @@ The provider is represented by a single style URL in the location module so a se
 
 The Places tab manages owner-scoped places on the paired Arwen server. A place has a name, center coordinate, and radius. Users can enter coordinates directly or, after accepting the existing OpenFreeMap disclosure, tap the map and preview the radius. New places start from the most recent uploaded sample when one is available.
 
-Reading and editing places does not enable location collection. The Android client supports loading, empty, local-network permission, validation, save failure, and delete confirmation states. The Timeline tab remains an explicit placeholder: stay/move derivation and timeline APIs have not been ported yet.
+Reading and editing places does not enable location collection. The Android client supports loading, empty, local-network permission, validation, save failure, and delete confirmation states.
+
+## Timeline
+
+The Timeline tab requests `GET /api/location/timeline?date=YYYY-MM-DD` from the paired Arwen server. Arwen derives place-entry, place-exit, and move events on demand from uploaded `GOOD`/`FAIR` samples and saved places; these derived events are not persisted yet. Viewing the timeline does not enable location collection.
 
 ## Transport
 

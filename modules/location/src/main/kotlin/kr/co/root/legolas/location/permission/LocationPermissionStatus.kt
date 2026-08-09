@@ -10,12 +10,6 @@ import android.os.Build
 import android.provider.Settings
 import androidx.core.location.LocationManagerCompat
 
-enum class LocationAccuracy {
-    None,
-    Approximate,
-    Precise,
-}
-
 data class LocationPermissionStatus(
     val accuracy: LocationAccuracy,
     val hasBackgroundAccess: Boolean,

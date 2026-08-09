@@ -13,19 +13,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -34,7 +32,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -44,24 +41,20 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.co.root.legolas.location.R
-import kr.co.root.legolas.location.data.LocationSample
-import kr.co.root.legolas.location.data.LocationSampleQuality
+import kr.co.root.legolas.location.data.LocationTimelineEntry
+import kr.co.root.legolas.location.data.LocationTimelineEntryType
 import kr.co.root.legolas.location.permission.hasLocationServerAccess
-import java.text.DateFormat
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import java.util.Date
-import java.util.Locale
 
 @Composable
-internal fun LocationRouteTab(
+internal fun LocationTimelineTab(
     serverUrl: String,
     modifier: Modifier = Modifier,
-    viewModel: LocationRouteViewModel = viewModel(),
+    viewModel: LocationTimelineViewModel = viewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    var showBasemapDisclosure by rememberSaveable { mutableStateOf(false) }
     var hasServerAccess by remember(serverUrl) {
         mutableStateOf(context.hasLocationServerAccess(serverUrl))
     }
@@ -84,37 +77,31 @@ internal fun LocationRouteTab(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            RouteDateControls(
+            TimelineDateControls(
                 state = state,
                 onPrevious = { viewModel.moveDate(-1) },
                 onToday = viewModel::selectToday,
                 onNext = { viewModel.moveDate(1) },
                 onRefresh = viewModel::refresh,
-                onQualitySelected = viewModel::selectQuality,
             )
         }
         item {
-            LocationRouteMapCard(
-                samples = state.samples,
-                isExternalBasemapEnabled = state.isExternalBasemapEnabled,
-                onEnableExternalBasemap = { showBasemapDisclosure = true },
-                onDisableExternalBasemap = {
-                    viewModel.setExternalBasemapEnabled(false)
-                },
+            Text(
+                text = stringResource(R.string.location_timeline_private_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
         when {
             !hasServerAccess -> item {
-                RouteMessageCard(
+                TimelineMessageCard(
                     title = stringResource(R.string.location_route_local_network_title),
-                    description = stringResource(R.string.location_route_local_network_description),
+                    description = stringResource(R.string.location_timeline_local_network_description),
                     action = {
                         Button(
                             onClick = {
-                                localNetworkPermissionLauncher.launch(
-                                    Manifest.permission.ACCESS_LOCAL_NETWORK,
-                                )
+                                localNetworkPermissionLauncher.launch(Manifest.permission.ACCESS_LOCAL_NETWORK)
                             },
                         ) {
                             Text(stringResource(R.string.allow_local_network))
@@ -124,9 +111,9 @@ internal fun LocationRouteTab(
             }
 
             state.hasError -> item {
-                RouteMessageCard(
-                    title = stringResource(R.string.location_route_error_title),
-                    description = stringResource(R.string.location_route_error_description),
+                TimelineMessageCard(
+                    title = stringResource(R.string.location_timeline_error_title),
+                    description = stringResource(R.string.location_timeline_error_description),
                     action = {
                         Button(onClick = viewModel::refresh) {
                             Text(stringResource(R.string.location_retry))
@@ -135,7 +122,7 @@ internal fun LocationRouteTab(
                 )
             }
 
-            state.isLoading && state.samples.isEmpty() -> item {
+            state.isLoading && state.entries.isEmpty() -> item {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -146,46 +133,30 @@ internal fun LocationRouteTab(
                 }
             }
 
-            state.samples.isEmpty() -> item {
-                RouteMessageCard(
-                    title = stringResource(R.string.location_route_no_samples_title),
-                    description = stringResource(R.string.location_route_no_samples_description),
+            state.entries.isEmpty() -> item {
+                TimelineMessageCard(
+                    title = stringResource(R.string.location_timeline_empty_title),
+                    description = stringResource(R.string.location_timeline_empty_description),
                 )
             }
 
-            else -> {
-                item {
-                    Text(
-                        text = stringResource(R.string.location_route_sample_count, state.samples.size),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                }
-                items(state.samples, key = LocationSample::id) { sample ->
-                    LocationSampleCard(sample)
-                }
+            else -> itemsIndexed(
+                items = state.entries,
+                key = { index, entry -> "${entry.entryType}:${entry.startedAt}:$index" },
+            ) { _, entry ->
+                TimelineEntryCard(entry)
             }
         }
-    }
-
-    if (showBasemapDisclosure) {
-        ExternalBasemapDisclosureDialog(
-            onConfirm = {
-                showBasemapDisclosure = false
-                viewModel.setExternalBasemapEnabled(true)
-            },
-            onDismiss = { showBasemapDisclosure = false },
-        )
     }
 }
 
 @Composable
-private fun RouteDateControls(
-    state: LocationRouteUiState,
+private fun TimelineDateControls(
+    state: LocationTimelineUiState,
     onPrevious: () -> Unit,
     onToday: () -> Unit,
     onNext: () -> Unit,
     onRefresh: () -> Unit,
-    onQualitySelected: (LocationSampleQuality?) -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -228,76 +199,49 @@ private fun RouteDateControls(
                     Text(stringResource(R.string.location_next_day))
                 }
             }
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                QualityChip(
-                    label = stringResource(R.string.location_quality_all),
-                    selected = state.selectedQuality == null,
-                    onClick = { onQualitySelected(null) },
-                )
-                LocationSampleQuality.entries.forEach { quality ->
-                    QualityChip(
-                        label = quality.label(),
-                        selected = state.selectedQuality == quality,
-                        onClick = { onQualitySelected(quality) },
-                    )
-                }
-            }
         }
     }
 }
 
 @Composable
-private fun QualityChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    FilterChip(
-        selected = selected,
-        onClick = onClick,
-        label = { Text(label) },
-    )
-}
+private fun TimelineEntryCard(entry: LocationTimelineEntry) {
+    val unknownPlace = stringResource(R.string.location_timeline_unknown_place)
+    val title = when (entry.entryType) {
+        LocationTimelineEntryType.PLACE_ENTER -> stringResource(
+            R.string.location_timeline_arrived,
+            entry.placeName ?: unknownPlace,
+        )
+        LocationTimelineEntryType.PLACE_EXIT -> stringResource(
+            R.string.location_timeline_departed,
+            entry.placeName ?: unknownPlace,
+        )
+        LocationTimelineEntryType.MOVE -> stringResource(
+            R.string.location_timeline_moved,
+            entry.fromPlaceName ?: unknownPlace,
+            entry.toPlaceName ?: unknownPlace,
+        )
+    }
+    val time = entry.endedAt?.let { endedAt ->
+        stringResource(
+            R.string.location_timeline_time_range,
+            TimelineTimeFormatter.format(entry.startedAt),
+            TimelineTimeFormatter.format(endedAt),
+        )
+    } ?: TimelineTimeFormatter.format(entry.startedAt)
 
-@Composable
-private fun LocationSampleCard(sample: LocationSample) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
     ) {
         ListItem(
-            headlineContent = {
-                Text(
-                    String.format(
-                        Locale.US,
-                        "%.5f, %.5f",
-                        sample.latitude,
-                        sample.longitude,
-                    ),
-                )
-            },
-            supportingContent = {
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(DateFormat.getTimeInstance(DateFormat.SHORT).format(Date.from(sample.collectedAt)))
-                    Text(
-                        buildList {
-                            sample.horizontalAccuracyM?.let {
-                                add(stringResource(R.string.location_accuracy_meters, it))
-                            }
-                            add(sample.source)
-                            sample.activityType?.let(::add)
-                            sample.saveReason?.let(::add)
-                        }.joinToString(" · "),
-                    )
-                }
-            },
-            trailingContent = { Text(sample.quality.label()) },
-            colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            headlineContent = { Text(title) },
+            supportingContent = { Text(time) },
         )
     }
 }
 
 @Composable
-private fun RouteMessageCard(
+private fun TimelineMessageCard(
     title: String,
     description: String,
     action: (@Composable () -> Unit)? = null,
@@ -308,7 +252,7 @@ private fun RouteMessageCard(
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(title, style = MaterialTheme.typography.titleMedium)
             Text(
@@ -321,11 +265,5 @@ private fun RouteMessageCard(
     }
 }
 
-@Composable
-private fun LocationSampleQuality.label(): String = stringResource(
-    when (this) {
-        LocationSampleQuality.GOOD -> R.string.location_quality_good
-        LocationSampleQuality.FAIR -> R.string.location_quality_fair
-        LocationSampleQuality.BAD -> R.string.location_quality_bad
-    },
-)
+private val TimelineTimeFormatter: DateTimeFormatter =
+    DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withZone(SeoulZone)

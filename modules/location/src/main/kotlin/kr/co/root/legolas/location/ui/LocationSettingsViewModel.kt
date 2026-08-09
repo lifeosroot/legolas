@@ -12,17 +12,6 @@ import kr.co.root.legolas.location.data.LocationSettingsRepository
 import kr.co.root.legolas.location.tracking.LocationTrackingCommander
 import javax.inject.Inject
 
-data class LocationSettingsUiState(
-    val isLoading: Boolean = true,
-    val isEnabled: Boolean = false,
-    val isExternalBasemapEnabled: Boolean = false,
-    val isServiceRunning: Boolean = false,
-    val motion: String = "unknown",
-    val queuedCount: Int = 0,
-    val lastCollectedAtMillis: Long? = null,
-    val lastError: String? = null,
-)
-
 @HiltViewModel
 class LocationSettingsViewModel @Inject constructor(
     private val repository: LocationSettingsRepository,

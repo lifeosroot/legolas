@@ -91,12 +91,6 @@ class PairingRepository @Inject constructor(
     }
 }
 
-internal enum class PairingHealthResult {
-    Healthy,
-    Rejected,
-    Unavailable,
-}
-
 internal fun pairingHealthResult(statusCode: Int): PairingHealthResult = when (statusCode) {
     in 200..299 -> PairingHealthResult.Healthy
     HttpURLConnection.HTTP_UNAUTHORIZED, HttpURLConnection.HTTP_FORBIDDEN ->

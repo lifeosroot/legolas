@@ -253,14 +253,3 @@ internal class RootMovingCandidateDiagnostics {
 
 private fun RootLocationReading.hasQualifiedAccuracy(): Boolean =
     accuracyMeters != null && accuracyMeters >= 0f && accuracyMeters <= 50f
-
-internal data class RootMovingCandidateSampleDiagnostic(
-    val timestamp: Instant?,
-    val distanceMeters: Float?,
-    val accuracyMeters: Float?,
-    val requiredDistanceMeters: Float?,
-    val accepted: Boolean,
-    val reason: String,
-    val movementEvidenceScore: Int,
-    val consecutiveMovementSignals: Int,
-)

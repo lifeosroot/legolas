@@ -5,7 +5,6 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -119,9 +118,8 @@ fun LocationModuleScreen(
                 serverUrl = serverUrl,
                 modifier = Modifier.padding(innerPadding),
             )
-            LocationTopTab.Timeline -> LocationEmptyTab(
-                title = stringResource(R.string.location_timeline_empty_title),
-                description = stringResource(R.string.location_timeline_empty_description),
+            LocationTopTab.Timeline -> LocationTimelineTab(
+                serverUrl = serverUrl,
                 modifier = Modifier.padding(innerPadding),
             )
             LocationTopTab.Places -> LocationPlacesTab(
@@ -141,40 +139,6 @@ fun LocationModuleScreen(
                     modifier = Modifier
                         .widthIn(max = 720.dp)
                         .fillMaxWidth(),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun LocationEmptyTab(
-    title: String,
-    description: String,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Card(
-            modifier = Modifier.widthIn(max = 480.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }

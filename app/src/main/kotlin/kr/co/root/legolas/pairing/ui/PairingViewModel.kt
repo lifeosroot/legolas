@@ -15,13 +15,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class PairingUiState(
-    val isLoading: Boolean = true,
-    val serverUrl: String? = null,
-    val errorMessage: String? = null,
-    val shouldSuggestLogout: Boolean = false,
-)
-
 @HiltViewModel
 class PairingViewModel @Inject constructor(
     private val repository: PairingRepository,

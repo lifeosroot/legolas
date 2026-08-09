@@ -13,21 +13,6 @@ import java.net.URI
 import javax.inject.Inject
 import javax.inject.Singleton
 
-data class LocationPlace(
-    val id: Long,
-    val name: String,
-    val latitude: Double,
-    val longitude: Double,
-    val radiusMeters: Double,
-)
-
-data class LocationPlaceDraft(
-    val name: String,
-    val latitude: Double,
-    val longitude: Double,
-    val radiusMeters: Double,
-)
-
 @Singleton
 class LocationPlaceRepository @Inject constructor(
     @param:ApplicationContext private val context: Context,

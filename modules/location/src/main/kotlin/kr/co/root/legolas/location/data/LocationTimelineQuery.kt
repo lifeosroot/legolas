@@ -16,18 +16,11 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class LocationSampleQuery @Inject constructor(
+class LocationTimelineQuery @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val serverConfigProvider: LocationServerConfigProvider,
 ) {
-    suspend fun samplesOn(
-        date: LocalDate,
-        quality: LocationSampleQuality?,
-    ): List<LocationSample> = request(locationSamplesPath(date, quality))
-
-    suspend fun latest(): LocationSample? = request(RecentLocationSamplesPath).firstOrNull()
-
-    private suspend fun request(path: String): List<LocationSample> = withContext(Dispatchers.IO) {
+    suspend fun entriesOn(date: LocalDate): List<LocationTimelineEntry> = withContext(Dispatchers.IO) {
         val config = serverConfigProvider.current()
             ?: throw IOException("Arwen pairing is required")
         if (!context.hasLocationServerAccess(config.serverUrl)) {
@@ -35,7 +28,7 @@ class LocationSampleQuery @Inject constructor(
         }
 
         val endpoint = URI.create(
-            config.serverUrl.trimEnd('/') + path,
+            config.serverUrl.trimEnd('/') + locationTimelinePath(date),
         ).toURL()
         val connection = (endpoint.openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"
@@ -49,7 +42,7 @@ class LocationSampleQuery @Inject constructor(
             val status = connection.responseCode
             if (status !in 200..299) throw IOException("Arwen returned HTTP $status")
             connection.inputStream.bufferedReader(Charsets.UTF_8).use { reader ->
-                JSONArray(reader.readText()).toLocationSamples()
+                JSONArray(reader.readText()).toLocationTimelineEntries()
             }
         } finally {
             connection.disconnect()
@@ -57,37 +50,25 @@ class LocationSampleQuery @Inject constructor(
     }
 }
 
-internal const val RecentLocationSamplesPath = "/api/location/samples/recent?limit=1"
+internal fun locationTimelinePath(date: LocalDate): String =
+    "/api/location/timeline?date=$date"
 
-internal fun locationSamplesPath(
-    date: LocalDate,
-    quality: LocationSampleQuality?,
-): String = buildString {
-    append("/api/location/samples?date=")
-    append(date)
-    quality?.let {
-        append("&quality=")
-        append(it.name)
-    }
-}
+internal fun JSONArray.toLocationTimelineEntries(): List<LocationTimelineEntry> =
+    List(length()) { index -> getJSONObject(index).toLocationTimelineEntry() }
 
-private fun JSONArray.toLocationSamples(): List<LocationSample> =
-    List(length()) { index -> getJSONObject(index).toLocationSample() }
+private fun JSONObject.toLocationTimelineEntry(): LocationTimelineEntry =
+    LocationTimelineEntry(
+        entryType = LocationTimelineEntryType.valueOf(getString("entryType")),
+        startedAt = Instant.parse(getString("startedAt")),
+        endedAt = nullableInstant("endedAt"),
+        placeName = nullableString("placeName"),
+        fromPlaceName = nullableString("fromPlaceName"),
+        toPlaceName = nullableString("toPlaceName"),
+        algorithmVersion = getString("algorithmVersion"),
+    )
 
-private fun JSONObject.toLocationSample(): LocationSample = LocationSample(
-    id = getLong("id"),
-    collectedAt = Instant.parse(getString("collectedAt")),
-    latitude = getDouble("latitude"),
-    longitude = getDouble("longitude"),
-    horizontalAccuracyM = nullableDouble("horizontalAccuracyM"),
-    source = getString("source"),
-    quality = LocationSampleQuality.valueOf(getString("quality")),
-    activityType = nullableString("activityType"),
-    saveReason = nullableString("saveReason"),
-)
-
-private fun JSONObject.nullableDouble(name: String): Double? =
-    if (isNull(name)) null else getDouble(name)
+private fun JSONObject.nullableInstant(name: String): Instant? =
+    nullableString(name)?.let(Instant::parse)
 
 private fun JSONObject.nullableString(name: String): String? =
     if (isNull(name)) null else getString(name)

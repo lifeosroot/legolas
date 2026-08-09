@@ -13,7 +13,7 @@ App shell (Compose + Hilt)
               └── authenticated Arwen upload, route reads, and place management
 ```
 
-The location module is compiled into this build but is **off by default**. It does not collect or upload anything until the user enables it and grants the required Android permissions. Existing samples and saved places can be managed on the paired Arwen server without enabling collection. Routes have an on-device preview by default; an OpenFreeMap background map is a separate explicit opt-in. Timeline derivation is not implemented yet. See [Location collection](docs/location-collection.md) for the state machine, data fields, map disclosure, opt-out behavior, and device test checklist.
+The location module is compiled into this build but is **off by default**. It does not collect or upload anything until the user enables it and grants the required Android permissions. Existing samples, saved places, and the derived timeline can be read or managed on the paired Arwen server without enabling collection. Routes have an on-device preview by default; an OpenFreeMap background map is a separate explicit opt-in. See [Location collection](docs/location-collection.md) for the state machine, data fields, map disclosure, opt-out behavior, and device test checklist.
 
 To build Legolas without the location module, its permissions, services, and dependencies:
 

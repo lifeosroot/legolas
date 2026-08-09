@@ -11,24 +11,11 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kr.co.root.legolas.location.data.LocationPlace
 import kr.co.root.legolas.location.data.LocationPlaceDraft
 import kr.co.root.legolas.location.data.LocationPlaceRepository
 import kr.co.root.legolas.location.data.LocationSampleQuery
 import kr.co.root.legolas.location.data.LocationSettingsRepository
 import javax.inject.Inject
-
-data class LocationPlacesUiState(
-    val places: List<LocationPlace> = emptyList(),
-    val suggestedLatitude: Double? = null,
-    val suggestedLongitude: Double? = null,
-    val isExternalBasemapEnabled: Boolean = false,
-    val isLoading: Boolean = false,
-    val isSaving: Boolean = false,
-    val hasLoadError: Boolean = false,
-    val hasMutationError: Boolean = false,
-    val saveCompleted: Boolean = false,
-)
 
 @HiltViewModel
 class LocationPlacesViewModel @Inject constructor(

@@ -14,7 +14,6 @@ import kr.co.root.legolas.location.permission.hasLocationServerAccess
 import java.net.HttpURLConnection
 import java.net.URI
 import java.time.Instant
-import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -120,17 +119,6 @@ class LocationUploader @Inject constructor(
 
     private fun JSONObject.putNullable(name: String, value: Any?): JSONObject =
         put(name, value ?: JSONObject.NULL)
-}
-
-internal class LocationUploadException(
-    message: String,
-    val retryable: Boolean,
-) : IOException(message)
-
-internal fun Throwable.shouldRetryLocationUpload(): Boolean = when (this) {
-    is LocationUploadException -> retryable
-    is IOException -> true
-    else -> false
 }
 
 private const val LogTag = "Legolas"

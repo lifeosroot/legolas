@@ -16,16 +16,6 @@ import javax.inject.Singleton
 
 private val Context.locationDataStore by preferencesDataStore(name = "location")
 
-data class LocationTrackingState(
-    val enabled: Boolean = false,
-    val externalBasemapEnabled: Boolean = false,
-    val serviceRunning: Boolean = false,
-    val motion: String = "unknown",
-    val queuedCount: Int = 0,
-    val lastCollectedAtMillis: Long? = null,
-    val lastError: String? = null,
-)
-
 @Singleton
 class LocationSettingsRepository @Inject constructor(
     @ApplicationContext context: Context,

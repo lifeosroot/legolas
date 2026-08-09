@@ -2,39 +2,6 @@ package kr.co.root.legolas.location.tracking
 
 import kotlin.math.ceil
 
-internal data class RootLocationMovementWindow(
-    val sampleCount: Int,
-    val spanMillis: Long,
-    val distanceMeters: Float,
-    val startedAtMillis: Long?,
-    val endedAtMillis: Long?,
-)
-
-internal data class RootLocationMotionResult(
-    val motion: RootActivityMotion?,
-    val evaluation: RootLocationMovementEvaluation,
-)
-
-internal data class RootLocationMovementEvaluation(
-    val reading: RootLocationReading?,
-    val distanceMeters: Float?,
-    val accuracyMeters: Float?,
-    val requiredDistanceMeters: Float?,
-    val accepted: Boolean,
-    val reason: RootLocationMovementDecisionReason,
-    val movementEvidenceScore: Int,
-    val consecutiveMovementSignals: Int,
-)
-
-internal enum class RootLocationMovementDecisionReason {
-    INVALID_LOCATION,
-    ACCURACY_TOO_POOR,
-    TIMESTAMP_NOT_INCREASING,
-    FIRST_SAMPLE,
-    DISTANCE_TOO_SMALL,
-    MOVEMENT_SIGNAL,
-}
-
 internal class RootLocationMotionGate {
     private var lastReading: RootLocationReading? = null
     private val recentReadings = ArrayDeque<RootLocationReading>()
@@ -340,4 +307,3 @@ internal class RootLocationMotionGate {
         const val StableWindowMinimumCoveragePercent = 80L
     }
 }
-
